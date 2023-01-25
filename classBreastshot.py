@@ -14,7 +14,7 @@ class breastTurbine():
     # methods - for calculating rotational velocity
     def velocities(self, head, nappe_height,v_nappe):
         
-        self.v_vert = (2 * self.g * (head + nappe_height/2)) ** 0.5
+        self.v_vert = (2 * self.g * abs(head + (nappe_height/2) + self.y_centre)) ** 0.5
         self.v_tan = (v_nappe**2 + self.v_vert**2) ** 0.5
         return self.v_vert, self.v_tan
 
