@@ -1,8 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-class Turbine(self, radius, num_blades, x_centre, y_centre):
-
+class Turbine():
     # constructor
     def __init__(self, radius, num_blades, x_centre, y_centre):
         self.radius = radius
@@ -17,14 +16,17 @@ class Turbine(self, radius, num_blades, x_centre, y_centre):
         y_circle = radius * np.sin(theta) + y_centre
         return self.x_circle, self.y_circle
 
+    # plot the turbine centre
     def plot(self, x_circle, y_circle):
         plt.plot(x_circle, y_circle, 'r')
         plt.show()
 
+    # calculate the power of the turbine in the breast shot
     def breastShotPower(self, radius, num_blades, x_centre, y_centre):
         # calculate the power of the turbine
         return 0
 
+    # calculate the power of the turbine in the under shot
     def underShotPower(self, radius, num_blades, x_centre, y_centre):
         # calculate the power of the turbine
         return 0
