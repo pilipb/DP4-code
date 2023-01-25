@@ -4,7 +4,7 @@ import classBreastshot
 radius = 1 # m
 num_blades = 3 
 x_centre = 100 # m
-y_centre = -50 # m
+y_centre = -10 # m
 
 # Define river parameters
 width = 10 # m
@@ -26,19 +26,19 @@ print(instant_power)
 import matplotlib.pyplot as plt
 import numpy as np
 
-y_centre = np.linspace(0, -10, 100)
-power = np.zeros(len(y_centre))
-
-for i in range(len(y_centre)):
-    i = int(i)
-    turbine.y_centre = y_centre[i]
+for y_centre in range(0, -50, -1):
+    turbine = classBreastshot.breastTurbine(radius, num_blades, x_centre, y_centre)
     turbine.velocities(head, river.nappe_height, river.v_nappe)
-    power[i] = turbine.power(river.volFlowRate, river.rho)
+    instant_power = turbine.power(river.volFlowRate, river.rho)
+    plt.plot(y_centre, instant_power, 'ro')
+    
 
-plt.plot(y_centre, power)
-plt.xlabel('y_centre (m)')
+plt.xlabel('y_centre')
 plt.ylabel('Power (W)')
 plt.show()
+
+
+
 
 
 
