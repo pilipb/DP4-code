@@ -6,10 +6,20 @@ class breastTurbine():
     def __init__(self, radius, num_blades, x_centre, y_centre):
         self.radius = radius
         self.num_blades = num_blades
-        self.bucket_mass = 8
+        # self.bucket_mass = 8
         self.g = 9.81
         self.x_centre = x_centre
         self.y_centre = y_centre
+
+    # plot centre and radius of turbine
+    def plotTurbine(self):
+
+        # plot radius of turbine
+        theta = np.linspace(0, 2 * np.pi, 100)
+        x = self.radius * np.cos(theta) + self.x_centre
+        y = self.radius * np.sin(theta) + self.y_centre
+
+        return x, y
 
     # methods - for calculating rotational velocity
     def velocities(self, head, nappe_height,v_nappe):
@@ -47,6 +57,25 @@ class River():
         self.rho = 1
         self.nappe_height = (self.volFlowRate / (self.nappeC * self.g**1/2 * self.width)) ** (2/3)
         self.v_nappe = self.volFlowRate/(self.width * self.nappe_height)
+
+    # methods - for plotting the river flow
+    def plotRiver(self):
+        # plot points using suvats for river at bed and nappe parametrically for time
+        calcT = np.sqrt(2 * self.head / self.g)
+        # define time
+        t = np.linspace(0, calcT, 20)
+
+        # define x and y coordinates
+        x_bed = self.velocity * t
+        y_bed = np.zeros(len(t)) - 0.5 * self.g * t**2
+        x_nappe = self.v_nappe * t
+        y_nappe = self.nappe_height * np.ones(len(t)) - 0.5 * self.g * t**2
+        
+        # return the equations of the river bed and nappe flows
+        return x_bed, y_bed, x_nappe, y_nappe
+
+
+        
 
 '''
 # Turbine
