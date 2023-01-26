@@ -63,7 +63,7 @@ class River():
         # plot points using suvats for river at bed and nappe parametrically for time
         calcT = np.sqrt(2 * self.head / self.g)
         # define time
-        t = np.linspace(0, calcT, 20)
+        t = np.linspace(0, calcT, 1000)
 
         # define x and y coordinates
         x_bed = self.velocity * t
@@ -89,15 +89,39 @@ def plotEverything(river, turbine):
 
     # plot the turbine
     x_turbine, y_turbine = turbine.plotTurbine()
-    plt.plot(x_turbine, y_turbine, 'b-')
+    plt.plot(x_turbine, y_turbine, 'g-')
     # plot centre of turbine
     plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
+
+    # calculate points of intersection between turbine radius and nappe flow
+    x_intersect = []
+    y_intersect = []
+    for i in range(len(x_nappe)):
+        if (x_nappe[i] - turbine.x_centre)**2 + (y_nappe[i] - turbine.y_centre)**2 <= turbine.radius**2:
+            x_intersect.append(x_nappe[i])
+            y_intersect.append(y_nappe[i])
+
+    # plot the first, last and middle intersection points
+    plt.plot(x_intersect[0], y_intersect[0], 'ro')
+    plt.plot(x_intersect[-1], y_intersect[-1], 'ro')
+    plt.plot(x_intersect[int(len(x_intersect)/2)], y_intersect[int(len(x_intersect)/2)], 'ro')
+
+    # calculate and plot the radius straight line from the centre of the turbine to the middle intersection point
+    m = (y_intersect[int(len(x_intersect)/2)] - turbine.y_centre) / (x_intersect[int(len(x_intersect)/2)] - turbine.x_centre)
+    c = turbine.y_centre - m * turbine.x_centre
+    x_radius = np.linspace(turbine.x_centre, x_intersect[int(len(x_intersect)/2)], 1000)
+    y_radius = m * x_radius + c
+    plt.plot(x_radius, y_radius, 'r-')
+
 
     plt.xlabel('x (m)')
     plt.ylabel('y (m)')
     plt.show()
 
-    return x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine
+
+
+
+    return x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine, x_intersect, y_intersect
         
 
 '''
