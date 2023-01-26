@@ -70,11 +70,32 @@ class River():
         y_bed = np.zeros(len(t)) - 0.5 * self.g * t**2
         x_nappe = self.v_nappe * t
         y_nappe = self.nappe_height * np.ones(len(t)) - 0.5 * self.g * t**2
-        
+
         # return the equations of the river bed and nappe flows
         return x_bed, y_bed, x_nappe, y_nappe
 
+def plotEverything(river, turbine):
+    # plot the flow of the river at the height of river bed and nappe
+    x_bed, y_bed, x_nappe, y_nappe = river.plotRiver()
+    plt.plot(x_bed, y_bed, 'b-')
+    plt.plot(x_nappe, y_nappe, 'b-')
 
+    # line that is parallel to the river bed
+    plt.plot([-5,0], [0, 0], 'k')
+    # line that is parallel to the nappe height
+    plt.plot([-5,0], [river.nappe_height, river.nappe_height], 'k')
+    # line that is parallel to the bottom of the waterfall (head)
+    plt.plot([-5,max(x_nappe)], [-river.head, -river.head], 'k')
+
+    # plot the turbine
+    x_turbine, y_turbine = turbine.plotTurbine()
+    plt.plot(x_turbine, y_turbine, 'b-')
+    # plot centre of turbine
+    plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
+
+    plt.xlabel('x (m)')
+    plt.ylabel('y (m)')
+    plt.show()
         
 
 '''

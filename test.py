@@ -18,27 +18,7 @@ river = classBreastshot.River(width, depth, velocity, head)
 
 
 '''Plot the turbine and river flow'''
-# plot the flow of the river at the height of river bed and nappe
-x_bed, y_bed, x_nappe, y_nappe = river.plotRiver()
-plt.plot(x_bed, y_bed, 'b-')
-plt.plot(x_nappe, y_nappe, 'b-')
-
-# line that is parallel to the river bed
-plt.plot([-5,0], [0, 0], 'k')
-# line that is parallel to the nappe height
-plt.plot([-5,0], [river.nappe_height, river.nappe_height], 'k')
-# line that is parallel to the bottom of the waterfall (head)
-plt.plot([-5,max(x_nappe)], [-river.head, -river.head], 'k')
-
-# plot the turbine
-x_turbine, y_turbine = turbine.plotTurbine()
-plt.plot(x_turbine, y_turbine, 'b-')
-# plot centre of turbine
-plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
-
-plt.xlabel('x (m)')
-plt.ylabel('y (m)')
-plt.show()
+classBreastshot.plotEverything(river, turbine)
 
 # calculate how much water enters the turbine
 # turbine.volume(river.width, river.depth, river.velocity, river.head)
