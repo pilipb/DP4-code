@@ -18,7 +18,9 @@ river = classBreastshot.River(width, depth, velocity, head)
 
 
 '''Plot the turbine and river flow'''
-classBreastshot.plotEverything(river, turbine)
+x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine = classBreastshot.plotEverything(river, turbine)
+
+
 
 # calculate how much water enters the turbine
 # turbine.volume(river.width, river.depth, river.velocity, river.head)

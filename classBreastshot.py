@@ -96,6 +96,8 @@ def plotEverything(river, turbine):
     plt.xlabel('x (m)')
     plt.ylabel('y (m)')
     plt.show()
+
+    return x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine
         
 
 '''
