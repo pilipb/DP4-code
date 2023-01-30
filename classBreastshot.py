@@ -77,21 +77,21 @@ class River():
 def plotEverything(river, turbine):
     # plot the flow of the river at the height of river bed and nappe
     x_bed, y_bed, x_nappe, y_nappe = river.plotRiver()
-    plt.plot(x_bed, y_bed, 'b-')
-    plt.plot(x_nappe, y_nappe, 'b-')
+    # plt.plot(x_bed, y_bed, 'b-')
+    # plt.plot(x_nappe, y_nappe, 'b-')
 
     # line that is parallel to the river bed
-    plt.plot([-5,0], [0, 0], 'k')
+    # plt.plot([-5,0], [0, 0], 'k')
     # line that is parallel to the nappe height
-    plt.plot([-5,0], [river.nappe_height, river.nappe_height], 'k')
+    # plt.plot([-5,0], [river.nappe_height, river.nappe_height], 'k')
     # line that is parallel to the bottom of the waterfall (head)
-    plt.plot([-5,max(x_nappe)], [-river.head, -river.head], 'k')
+    # plt.plot([-5,max(x_nappe)], [-river.head, -river.head], 'k')
 
     # plot the turbine
     x_turbine, y_turbine = turbine.plotTurbine()
-    plt.plot(x_turbine, y_turbine, 'g-')
+    # plt.plot(x_turbine, y_turbine, 'g-')
     # plot centre of turbine
-    plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
+    # plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
 
     # calculate points of intersection between turbine radius and nappe flow
     x_intersect = []
@@ -102,21 +102,26 @@ def plotEverything(river, turbine):
             y_intersect.append(y_nappe[i])
 
     # plot the first, last and middle intersection points
-    plt.plot(x_intersect[0], y_intersect[0], 'ro')
-    plt.plot(x_intersect[-1], y_intersect[-1], 'ro')
-    plt.plot(x_intersect[int(len(x_intersect)/2)], y_intersect[int(len(x_intersect)/2)], 'ro')
-
-    # calculate and plot the radius straight line from the centre of the turbine to the middle intersection point
-    m = (y_intersect[int(len(x_intersect)/2)] - turbine.y_centre) / (x_intersect[int(len(x_intersect)/2)] - turbine.x_centre)
-    c = turbine.y_centre - m * turbine.x_centre
-    x_radius = np.linspace(turbine.x_centre, x_intersect[int(len(x_intersect)/2)], 1000)
-    y_radius = m * x_radius + c
-    plt.plot(x_radius, y_radius, 'r-')
+    try:
+        # plt.plot(x_intersect[0], y_intersect[0], 'ro')
+        # plt.plot(x_intersect[-1], y_intersect[-1], 'ro')
+        # plt.plot(x_intersect[int(len(x_intersect)/2)], y_intersect[int(len(x_intersect)/2)], 'ro')
 
 
-    plt.xlabel('x (m)')
-    plt.ylabel('y (m)')
-    plt.show()
+        # calculate and plot the radius straight line from the centre of the turbine to the middle intersection point
+        m = (y_intersect[int(len(x_intersect)/2)] - turbine.y_centre) / (x_intersect[int(len(x_intersect)/2)] - turbine.x_centre)
+        c = turbine.y_centre - m * turbine.x_centre
+        x_radius = np.linspace(turbine.x_centre, x_intersect[int(len(x_intersect)/2)], 1000)
+        y_radius = m * x_radius + c
+        # plt.plot(x_radius, y_radius, 'r-')
+
+
+        # plt.xlabel('x (m)')
+        # plt.ylabel('y (m)')
+        # plt.show()
+
+    except:
+        pass
 
 
 
