@@ -147,7 +147,7 @@ def momentumTransfer(turbine, river, x_nappe, y_nappe, theta):
     flowVelocity = ((river.velocity)**2 + (river.g * fallHeight * 2))**0.5
 
     # calculate momentum transfer as a fraction of the contact area
-    momTransfer = (1 - (horDist/turbine.radius)) * river.volFlowRate * flowVelocity/river.velocity
+    momTransfer = abs((1 - (horDist/turbine.radius)) * river.volFlowRate * flowVelocity/river.velocity)
 
     return momTransfer
 
@@ -162,6 +162,15 @@ plt.ylabel('momentum transfer (kg.m/s)')
 plt.show()
 
 
+# plot impulse force vs theta and momentum transfer vs theta with two y axes
+fig, ax1 = plt.subplots()
+ax2 = ax1.twinx()
+ax1.plot(theta, torque, 'b-')
+ax2.plot(theta, momTransfer, 'r-')
+ax1.set_xlabel('theta (radians)')
+ax1.set_ylabel('torque (N.m)', color='b')
+ax2.set_ylabel('momentum transfer (kg.m/s)', color='r')
+plt.show()
 
 
 
