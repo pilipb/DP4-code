@@ -3,12 +3,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
+'''MAKE 3D - make volume a function of river width and turbine width'''
+# the maximum volume of water that can be stored in the turbine is 8 m^3
+# this is the max vol if the river width is within 10% of the turbine width
+# the max vol decreases as the river width decreases
+
 # Define turbine parameters
-maxVol = 2 # m^3
 radius = 0.75 # m
-num_blades = 3 
+num_blades = 6
 x_centre = 2 # m
 y_centre = -1 # m
+turbWidth = 1 # m
 
 # Define river parameters
 width = 10 # m
@@ -18,6 +23,12 @@ head = 2 # m
 
 turbine = classBreastshot.breastTurbine(radius, num_blades, x_centre, y_centre)
 river = classBreastshot.River(width, depth, velocity, head)
+
+# check if river is wider than turbine
+if river.width > turbWidth:
+    maxVol = 8
+else:
+    maxVol = 8 * (river.width / turbWidth)
 
 '''Plot the turbine and river flow'''
 x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine, x_intersect, y_intersect = classBreastshot.plotEverything(river, turbine)
@@ -56,12 +67,12 @@ def torquePlot(turbine, river, x_intersect, y_intersect):
 
     def bucketMass(theta):
 
-        def maxVol():
-            try:
-                return float(2 - np.sqrt(abs(y_intersect[0] - turbine.y_centre)))
-            except IndexError:
-                print('No intersection found')
-                return 1
+        # def maxVol():
+        #     try:
+        #         return float(2 - np.sqrt(abs(y_intersect[0] - turbine.y_centre)))
+        #     except IndexError:
+        #         print('No intersection found')
+        #         return 1
 
         if theta < math.pi/4:
             mass = (maxVol)/((math.pi/4)-theta_entry)* theta
@@ -79,10 +90,11 @@ def torquePlot(turbine, river, x_intersect, y_intersect):
 
     return theta, torque
 
+plt.figure()
 # plot torque vs theta for 3 different x_centre values
 x_centre = 2
-for i in range(3):
-    x_centre = x_centre + 0.2
+for i in range(6):
+    x_centre = x_centre + 0.1
     turbine = classBreastshot.breastTurbine(radius, num_blades, x_centre, y_centre)
     x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine, x_intersect, y_intersect = classBreastshot.plotEverything(river, turbine)
     try:
@@ -100,6 +112,55 @@ plt.legend()
 plt.xticks([0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, 5*math.pi/4, 3*math.pi/2, 7*math.pi/4, 2*math.pi], ['0', '$\pi$/4', '$\pi$/2', '3$\pi$/4', '$\pi$', '5$\pi$/4', '3$\pi$/2', '7$\pi$/4', '2$\pi$'])
 plt.ylabel('torque (N.m)')
 plt.show()
+
+
+# calculate impulse force at each theta
+# impulse is change in momentum, force is change in momentum per unit time
+
+# calculate change in momentum at each theta
+''' 
+Momentum transfer from river to turbine
+
+the distance between the nappe flow and the turbine centre at each theta is:
+
+dist = abs((x_nappe[y_nappe = turbine.y_centre] - turbine.x_centre))
+
+mom_transfer = (1 - dist/turbine.radius) *  river.massFlow * river.velocity
+
+river.velocity = river.velocity + sqrt(acceleration due to gravity * fall height * 2)
+
+fall height(at theta) = ycentre + turbine.radius * cos(theta)
+
+'''
+
+# calculate change in momentum at each theta
+def momentumTransfer(turbine, river, x_nappe, y_nappe, theta):
+    # find the x_nappe value at the point where y_nappe is closest to the turbine centre
+    y_diff = min(y_nappe, key=lambda x:abs(x-turbine.y_centre))
+    x_interest = x_nappe[y_nappe == y_diff]
+
+    # calculate distance between nappe flow and turbine centre
+    horDist = abs(x_interest - turbine.x_centre)
+    fallHeight = abs(turbine.y_centre +  turbine.radius * np.cos(theta))
+
+    # calculate velocity of nappe flow at each theta
+    flowVelocity = ((river.velocity)**2 + (river.g * fallHeight * 2))**0.5
+
+    # calculate momentum transfer as a fraction of the contact area
+    momTransfer = (1 - (horDist/turbine.radius)) * river.volFlowRate * flowVelocity/river.velocity
+
+    return momTransfer
+
+# calculate change in momentum at each theta and plot
+momTransfer = []
+for i, angle in enumerate(theta):
+    momTransfer.append(momentumTransfer(turbine, river, x_nappe, y_nappe, angle))
+plt.figure()
+plt.plot(theta, momTransfer)
+plt.xticks([0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, 5*math.pi/4, 3*math.pi/2, 7*math.pi/4, 2*math.pi], ['0', '$\pi$/4', '$\pi$/2', '3$\pi$/4', '$\pi$', '5$\pi$/4', '3$\pi$/2', '7$\pi$/4', '2$\pi$'])
+plt.ylabel('momentum transfer (kg.m/s)')
+plt.show()
+
 
 
 
