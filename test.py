@@ -149,12 +149,21 @@ def momentumTransfer(turbine, river, x_nappe, y_nappe, theta):
     # calculate momentum transfer as a fraction of the contact area
     momTransfer = abs((1 - (horDist/turbine.radius)) * river.volFlowRate * flowVelocity/river.velocity)
 
-    return momTransfer
+    # the rotational momentum transfer is momentum transfer * radius - which will be the average impact radius
+    avgImpactRadius = turbine.radius - (turbine.radius - horDist)/2
+    rotMomTransfer = momTransfer * avgImpactRadius
+
+    return momTransfer, rotMomTransfer
 
 # calculate change in momentum at each theta and plot
 momTransfer = []
+rotMomTransfer = []
 for i, angle in enumerate(theta):
-    momTransfer.append(momentumTransfer(turbine, river, x_nappe, y_nappe, angle))
+    mom, rotMom = momentumTransfer(turbine, river, x_nappe, y_nappe, angle)
+    momTransfer.append(mom)
+    rotMomTransfer.append(rotMom)
+
+momTransfer = np.array(momTransfer)
 plt.figure()
 plt.plot(theta, momTransfer)
 plt.xticks([0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, 5*math.pi/4, 3*math.pi/2, 7*math.pi/4, 2*math.pi], ['0', '$\pi$/4', '$\pi$/2', '3$\pi$/4', '$\pi$', '5$\pi$/4', '3$\pi$/2', '7$\pi$/4', '2$\pi$'])
@@ -162,15 +171,25 @@ plt.ylabel('momentum transfer (kg.m/s)')
 plt.show()
 
 
+
 # plot impulse force vs theta and momentum transfer vs theta with two y axes
 fig, ax1 = plt.subplots()
 ax2 = ax1.twinx()
-ax1.plot(theta, torque, 'b-')
-ax2.plot(theta, momTransfer, 'r-')
+ax1.plot(theta, torque, 'b-', label='PE Torque')
+ax2.plot(theta, rotMomTransfer, 'r-', label = 'KE Mom')
+total_torque = []
+for i, v in enumerate(torque):
+    total_torque.append(v + rotMomTransfer[i])
+ax1.plot(theta, total_torque,'k-',label='Total Torque')
 ax1.set_xlabel('theta (radians)')
 ax1.set_ylabel('torque (N.m)', color='b')
-ax2.set_ylabel('momentum transfer (kg.m/s)', color='r')
+ax2.set_ylabel('rotational momentum transfer (kg.m/s . m)', color='r')
+fig.legend()
 plt.show()
+
+
+
+
 
 
 
