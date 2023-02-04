@@ -3,14 +3,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 
-'''MAKE 3D - make volume a function of river width and turbine width'''
-# the maximum volume of water that can be stored in the turbine is 8 m^3
-# this is the max vol if the river width is within 10% of the turbine width
-# the max vol decreases as the river width decreases
-
 # Define turbine parameters
 radius = 0.75 # m
-num_blades = 6
+num_blades = 3
 x_centre = 2 # m
 y_centre = -1 # m
 turbWidth = 1 # m
@@ -24,6 +19,9 @@ head = 2 # m
 turbine = classBreastshot.breastTurbine(radius, num_blades, x_centre, y_centre)
 river = classBreastshot.River(width, depth, velocity, head)
 
+# the maximum volume of water that can be stored in the turbine is 8 m^3
+# this is the max vol if the river width is within 10% of the turbine width
+# the max vol decreases as the river width decreases
 # check if river is wider than turbine
 if river.width > turbWidth:
     maxVol = 8
@@ -163,14 +161,13 @@ for i, angle in enumerate(theta):
     momTransfer.append(mom)
     rotMomTransfer.append(rotMom)
 
-momTransfer = np.array(momTransfer)
+### PLOTTING ###
+
 plt.figure()
 plt.plot(theta, momTransfer)
 plt.xticks([0, math.pi/4, math.pi/2, 3*math.pi/4, math.pi, 5*math.pi/4, 3*math.pi/2, 7*math.pi/4, 2*math.pi], ['0', '$\pi$/4', '$\pi$/2', '3$\pi$/4', '$\pi$', '5$\pi$/4', '3$\pi$/2', '7$\pi$/4', '2$\pi$'])
 plt.ylabel('momentum transfer (kg.m/s)')
 plt.show()
-
-
 
 # plot impulse force vs theta and momentum transfer vs theta with two y axes
 fig, ax1 = plt.subplots()
@@ -186,6 +183,24 @@ ax1.set_ylabel('torque (N.m)', color='b')
 ax2.set_ylabel('rotational momentum transfer (kg.m/s . m)', color='r')
 fig.legend()
 plt.show()
+
+
+### ACCOUNT FOR MULTIPLE BLADES ###
+# calculate angle between blades
+bladeAngle = 2*math.pi/num_blades
+theta = np.linspace(min(theta),2*math.pi + min(theta), 100)
+plt.figure()
+# plot the total torque as the turbine does a complete rotation
+for blade in range(num_blades):
+    plt.plot(theta + blade*bladeAngle, total_torque,'k-',label='Total Torque')
+
+plt.title('Torque vs theta for ' + str(num_blades) + ' blades')
+plt.xlabel('theta (radians)')
+plt.ylabel('torque (N.m)', color='k')
+plt.show()
+
+    
+
 
 
 
