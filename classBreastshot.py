@@ -129,28 +129,3 @@ def plotEverything(river, turbine):
     return x_bed, y_bed, x_nappe, y_nappe, x_turbine, y_turbine, x_intersect, y_intersect
         
 
-'''
-# Turbine
-
-x_centre, y_centre = 100, -50
-fall_dist = 20
-
-
-
-# Calculations for KE
-
-v_vert = (2 * g * (fall_dist + nappe_height/2)) ** 0.5
-v_tan = (v_nappe**2 + v_vert**2) ** 0.5
-
-power_KE = 0.5 * flow_rate * rho * v_tan**2
-
-# Static PE calculations
-
-torque = mass_bucket * g * radius
-power_PE = torque * v_tan
-
-# Instantaneous power
-
-power = power_KE + power_PE
-
-'''
