@@ -5,7 +5,7 @@ import math
 
 # Define turbine parameters
 radius = 0.75 # m
-num_blades = 3
+num_blades = 5
 x_centre = 2 # m
 y_centre = -1 # m
 turbWidth = 1 # m
@@ -91,6 +91,7 @@ def torquePlot(turbine, river, x_intersect, y_intersect):
 plt.figure()
 # plot torque vs theta for 3 different x_centre values
 x_centre = 2
+
 for i in range(6):
     x_centre = x_centre + 0.1
     turbine = classBreastshot.breastTurbine(radius, num_blades, x_centre, y_centre)
@@ -191,16 +192,23 @@ bladeAngle = 2*math.pi/num_blades
 theta = np.linspace(min(theta),2*math.pi + min(theta), 100)
 plt.figure()
 # plot the total torque as the turbine does a complete rotation
-for numRots in range(1, 5):
+
+# define number of rotations
+for numRots in range(1):
     for blade in range(num_blades):
-        plt.plot(theta + blade*bladeAngle, total_torque,'k-',label='Total Torque')
+        # shift the blade angle 
+        plt.plot(theta + numRots*bladeAngle +blade*bladeAngle, total_torque,'k-',label='Total Torque')
 
 plt.title('Torque vs theta for ' + str(num_blades) + ' blades')
 plt.xlabel('theta (radians)')
 plt.ylabel('torque (N.m)', color='k')
 plt.show()
 
-    
+
+
+
+
+
 
 
 
