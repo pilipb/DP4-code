@@ -191,8 +191,9 @@ bladeAngle = 2*math.pi/num_blades
 theta = np.linspace(min(theta),2*math.pi + min(theta), 100)
 plt.figure()
 # plot the total torque as the turbine does a complete rotation
-for blade in range(num_blades):
-    plt.plot(theta + blade*bladeAngle, total_torque,'k-',label='Total Torque')
+for numRots in range(1, 5):
+    for blade in range(num_blades):
+        plt.plot(theta + blade*bladeAngle, total_torque,'k-',label='Total Torque')
 
 plt.title('Torque vs theta for ' + str(num_blades) + ' blades')
 plt.xlabel('theta (radians)')
