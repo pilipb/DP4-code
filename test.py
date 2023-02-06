@@ -64,14 +64,6 @@ def torquePlot(turbine, river, x_intersect, y_intersect):
     # let the maximum vloume vary with the distance from the turbine centre
 
     def bucketMass(theta):
-
-        # def maxVol():
-        #     try:
-        #         return float(2 - np.sqrt(abs(y_intersect[0] - turbine.y_centre)))
-        #     except IndexError:
-        #         print('No intersection found')
-        #         return 1
-
         if theta < math.pi/4:
             mass = (maxVol)/((math.pi/4)-theta_entry)* theta
             return mass
@@ -147,6 +139,11 @@ def momentumTransfer(turbine, river, x_nappe, y_nappe, theta):
 
     # calculate momentum transfer as a fraction of the contact area
     momTransfer = abs((1 - (horDist/turbine.radius)) * river.volFlowRate * flowVelocity/river.velocity)
+
+    ''' 
+    Here maybe calculate the proportion of the river that misses the turbine,
+    and then use that to get a more accurate momentum transfer
+    '''
 
     # the rotational momentum transfer is momentum transfer * radius - which will be the average impact radius
     avgImpactRadius = turbine.radius - (turbine.radius - horDist)/2
