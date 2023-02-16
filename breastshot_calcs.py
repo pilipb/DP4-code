@@ -64,7 +64,7 @@ class breastTurbine():
         x_intersect = []
         y_intersect = []
         for i in range(len(self.x)):
-            if self.y[i] > self.river.y_bed[i]:
+            if self.y[i] > self.river.y_nappe[i]:
                 x_intersect.append(self.x[i])
                 y_intersect.append(self.y[i])
 
@@ -117,7 +117,7 @@ class breastTurbine():
                 self.bucket_mass_list.append(mass)
                 
             else:
-                mass = self.max_bucket - ((self.max_bucket/(self.theta_exit-(math.pi/4))))* (self.theta_exit-theta)
+                mass = ((self.max_bucket/(self.theta_exit-(math.pi/4))))* (self.theta_exit-theta) #self.max_bucket - 
                 self.bucket_mass_list.append(mass)
         return 0
 
@@ -162,6 +162,8 @@ class breastTurbine():
         return 0
     
         ''' 
+        Momentum transfer will only occur while the blade has a direct line of sight with the watrerfall.
+
         Here maybe calculate the proportion of the river that misses the turbine,
         and then use that to get a more accurate momentum transfer
         '''
@@ -180,7 +182,8 @@ class breastTurbine():
             power.append((mom + self.torque_list[i]) * rot_speed)
 
         self.output_power_list = power
-        self.max_power = max(power)
+
+        self.max_power = np.max(power)
         self.avg_power = np.mean(power)
 
         return 0

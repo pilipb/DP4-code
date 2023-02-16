@@ -28,7 +28,6 @@ NOTE the returned coordinates are only after the nappe (assuming left to right f
 the head does not impact the calculations and can be left empty unless defined otherwise.
 
 
-
 '''
 
 class river_obj():
@@ -51,9 +50,10 @@ class river_obj():
         self.v_nappe = self.vol_flow_rate/(self.width * self.nappe_height)
 
         # calculate river at bed and nappe parametrically for time after waterfall
-        param_time = np.sqrt(2 * self.head / self.g)
+        time = 40
+        # param_time = np.sqrt(2 * self.head / self.g)
         # define time - arbitrary 1000
-        t = np.linspace(0, param_time, 1000) 
+        t = np.linspace(0, time, 1000) 
         # define x and y coordinates (after waterfall)
         self.x_bed = self.velocity * t
         self.y_bed = np.zeros(len(t)) - 0.5 * self.g * t**2
