@@ -29,10 +29,10 @@ find_momentum - calculates the impulse force transfered at each theta
 power - calculates the power variation due to the position of the turbine
 
 return:
-- bucket_mass - array: mass of the bucket at each theta
-- torque - array: torque at each theta
-- impulse - array: impulse force at each theta
-- power - array: power variation due to the position of the turbine
+bucket_mass - array: mass of the bucket at each theta
+torque - array: torque at each theta
+impulse - array: impulse force at each theta
+power - array: power variation due to the position of the turbine
 
 '''
 
@@ -80,7 +80,7 @@ class breastTurbine():
             if self.x_intersect[0] > self.x_centre:
                 theta_entry = 0
             else:
-                theta_entry = np.arctan(abs(self.x_centre - self.x_intersect[0]) / abs(turbine.y_centre - y_intersect[0]))
+                theta_entry = np.arctan(abs(self.x_centre - self.x_intersect[0]) / abs(self.y_centre - self.y_intersect[0]))
         except IndexError:
             print('No intersection found')
             return 1
@@ -90,7 +90,7 @@ class breastTurbine():
             if self.x_intersect[-1] > self.x_centre:
                 theta_exit = math.pi
             else:
-                theta_exit = math.pi - np.arctan(abs(self.x_centre - self.x_intersect[-1]) / abs(turbine.y_centre - y_intersect[-1]))
+                theta_exit = math.pi - np.arctan(abs(self.x_centre - self.x_intersect[-1]) / abs(self.y_centre - self.y_intersect[-1]))
         except IndexError:
             print('No intersection found')
             return 1
@@ -149,7 +149,7 @@ class breastTurbine():
             fall_height = abs(self.y_centre +  self.radius * np.cos(angle))
 
             # calculate velocity of nappe flow at each theta
-            flow_velocity = ((river.velocity)**2 + (river.g * fall_height * 2))**0.5
+            flow_velocity = ((river.velocity)**2 + (self.g * fall_height * 2))**0.5
 
             # calculate momentum transfer as a fraction of the contact area
             mom_transfer = abs((1 - (hor_dist/self.radius)) * river.vol_flow_rate * flow_velocity/river.velocity)
