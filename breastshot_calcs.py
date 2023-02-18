@@ -162,7 +162,7 @@ class breastTurbine():
         return 0
     
         ''' 
-        Momentum transfer will only occur while the blade has a direct line of sight with the watrerfall.
+        Momentum transfer will only occur while the blade has a direct line of sight with the waterfall.
 
         Here maybe calculate the proportion of the river that misses the turbine,
         and then use that to get a more accurate momentum transfer
