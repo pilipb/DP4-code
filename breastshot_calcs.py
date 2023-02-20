@@ -83,6 +83,8 @@ class breastTurbine():
         try:
             if self.x_intersect[0] > self.x_centre:
                 theta_entry = 0
+            if self.y_intersect[0] < self.y_centre:
+                theta_entry = math.pi/2
             else:
                 theta_entry = np.arctan(abs(self.x_centre - self.x_intersect[0]) / abs(self.y_centre - self.y_intersect[0]))
         except IndexError:
@@ -94,7 +96,7 @@ class breastTurbine():
             if self.x_intersect[-1] > self.x_centre:
                 theta_exit = math.pi
             else:
-                theta_exit = math.pi - np.arctan(abs(self.x_centre - self.x_intersect[-1]) / abs(self.y_centre - self.y_intersect[-1]))
+                theta_exit = math.pi + np.arctan(abs(self.x_centre - self.x_intersect[-1]) / abs(self.y_centre - self.y_intersect[-1]))
         except IndexError:
             print('No intersection found')
             return 1
@@ -110,7 +112,7 @@ class breastTurbine():
         if self.river.width > self.width:
             self.max_bucket = self.max_bucket
         else:
-            self.max_bucket = 8.7 * (self.river.width / self.width)
+            self.max_bucket = 16.4 * (self.river.width / self.width)
 
         # calculate the mass of the bucket at each theta
         self.bucket_mass_list = []
