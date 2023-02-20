@@ -52,6 +52,11 @@ class breastTurbine():
         self.y_centre = y_centre
         self.river = river
 
+        if self.river.width > 0.8 * self.width:
+            self.max_bucket = self.max_bucket
+        else:
+            self.max_bucket = 33.2 * (self.river.width / self.width)
+
         self.theta = np.linspace(0, 2 * np.pi, 100)
         self.x = self.radius * np.cos(self.theta) + self.x_centre
         self.y = self.radius * np.sin(self.theta) + self.y_centre
@@ -107,12 +112,10 @@ class breastTurbine():
         return 0
 
     # calculate the mass of the bucket at each theta and the max_bucket volume
-    def find_bucket_mass(self):
-        # the maximum volume of water that can be stored in the turbine scales with the river width
-        if self.river.width > self.width:
-            self.max_bucket = self.max_bucket
-        else:
-            self.max_bucket = 33 * (self.river.width / self.width)
+    def find_bucket_torque(self):
+        '''
+        the max mass x COM 
+        '''
 
         # calculate the mass of the bucket at each theta
         self.bucket_mass_list = []
