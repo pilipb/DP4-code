@@ -112,7 +112,7 @@ class breastTurbine():
         if self.river.width > self.width:
             self.max_bucket = self.max_bucket
         else:
-            self.max_bucket = 16.4 * (self.river.width / self.width)
+            self.max_bucket = 33 * (self.river.width / self.width)
 
         # calculate the mass of the bucket at each theta
         self.bucket_mass_list = []
