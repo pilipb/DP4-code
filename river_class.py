@@ -38,12 +38,12 @@ class river_obj():
         self.velocity = velocity
 
 
-        self.vol_flow_rate = width * depth * velocity
+        self.vol_flow_rate = width * depth * velocity # m^3/s
 
         # define constants
-        self.nappe_C = 1.69
-        self.g = 9.81
-        self.rho = 1
+        self.nappe_C = 1.69 
+        self.g = 9.81 
+        self.rho = 997 # kg/m^3
 
         # calculate river features
         self.nappe_height = (self.vol_flow_rate / (self.nappe_C * self.g**1/2 * self.width)) ** (2/3)

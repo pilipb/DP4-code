@@ -1,4 +1,4 @@
-﻿Position,Estimated horizontal offset,Estimated vertical offset,Output power,Period for  10 rotation,Period for 1 rotation,Turbine rotational speed,Turbine rotational speed,Generator rotational speed
+﻿Position,Estimated horizontal offset [m],Estimated vertical offset [m],Output power [kW],Period for  10 rotation [s],Period for 1 rotation [s],Turbine rotational speed [rev/s],Turbine rotational speed [RPM],Generator rotational speed [RPM]
 A,0.65,0.14,0.366,41.52,4.152,0.241,14.5,231.2
 B,0.65,0.02,0.391,40.62,4.062,0.246,14.8,236.3
 C,0.73,0.04,0.393,40.37,4.037,0.248,14.9,237.8

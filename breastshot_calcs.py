@@ -144,6 +144,9 @@ class breastTurbine():
         # calculate distance between nappe flow and turbine centre
         hor_dist = abs(x_interest - self.x_centre)
 
+        # river cross section
+        river_area = river.width * river.depth
+
         for i, angle in enumerate(self.theta):
 
             fall_height = abs(self.y_centre +  self.radius * np.cos(angle))
@@ -151,8 +154,12 @@ class breastTurbine():
             # calculate velocity of nappe flow at each theta
             flow_velocity = ((river.velocity)**2 + (self.g * fall_height * 2))**0.5
 
-            # calculate momentum transfer as a fraction of the contact area
-            mom_transfer = abs((1 - (hor_dist/self.radius)) * river.vol_flow_rate * flow_velocity/river.velocity)
+            # calculate momentum transfer as a fraction of the contact area vs the cross section of the river
+            total_mom_river = river.vol_flow_rate * river.rho * flow_velocity/river.velocity
+
+            fraction_contact = (self.radius * np.sin(angle) * self.width) / river_area
+
+            mom_transfer = abs(1 - (hor_dist/self.radius)) * total_mom_river * fraction_contact
 
             # the rotational momentum transfer is momentum transfer * radius - which will be the average impact radius
             avg_impact_radius = self.radius - (self.radius - hor_dist)/2
