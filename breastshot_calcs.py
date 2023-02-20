@@ -63,10 +63,14 @@ class breastTurbine():
         # find the x and y coordinates of the intersection
         x_intersect = []
         y_intersect = []
-        for i in range(len(self.x)):
-            if self.y[i] > self.river.y_nappe[i]:
-                x_intersect.append(self.x[i])
-                y_intersect.append(self.y[i])
+
+        # intersection occurs when both the x and y differences between the turbine and river are approximately 0
+        for i, xval in enumerate(self.river.x_nappe):
+            for j, xxval in enumerate(self.x):
+                if abs(xval - xxval) < 0.1:
+                    if abs(self.y[j] - self.river.y_nappe[i]) < 0.1:
+                        x_intersect.append(self.x[j])
+                        y_intersect.append(self.y[j])
 
         self.x_intersect = x_intersect
         self.y_intersect = y_intersect
@@ -106,7 +110,7 @@ class breastTurbine():
         if self.river.width > self.width:
             self.max_bucket = self.max_bucket
         else:
-            self.max_bucket = 8 * (self.river.width / self.width)
+            self.max_bucket = 8.7 * (self.river.width / self.width)
 
         # calculate the mass of the bucket at each theta
         self.bucket_mass_list = []
@@ -199,7 +203,28 @@ class breastTurbine():
 
 
         
+if __name__ == '__main__':
+    from river_class import river_obj
 
+    # create a river object
+    river = river_obj(5,1.2,1.5)
+
+    # create a breastshot turbine
+    turbine = breastTurbine(0.8,1.1,5,8.7,0.65,0.1,river)
+
+    plt.plot(river.x_nappe, river.y_nappe)
+
+
+    turbine.find_intersects()
+
+    # plot turbine.x, turbine.y
+    plt.plot(turbine.x, turbine.y)
+    plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
+    plt.plot(turbine.x_intersect[0], turbine.y_intersect[0], 'ro')
+    plt.plot(turbine.x_intersect[-1], turbine.y_intersect[-1], 'ro')
+    plt.xlim(-0.7, 8)
+    plt.ylim(-3, 5)
+    plt.show()
         
 
                                 
