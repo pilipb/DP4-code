@@ -234,6 +234,20 @@ class breastTurbine():
 
 
         return 0
+    
+    def analysis(self,x_centre,y_centre, RPM):
+        '''
+        Run the analysis for the turbine at the given RPM
+        '''
+        self.x_centre = x_centre
+        self.y_centre = y_centre
+        self.find_intersects()
+        self.find_theta_range()
+        self.find_torque()
+        self.find_momentum()
+        self.find_power(RPM)
+        self.find_average_power()
+        return 0
 
 
 

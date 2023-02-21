@@ -41,8 +41,8 @@ class underTurbine():
 
         self.river = river
         self.g = 9.81
-        self.drag_coeff = 1.5
-        self.blade_width = 0.502
+        self.drag_coeff = 2.3 # from consultancy report
+        self.blade_width = width # from CAD
 
         # depth of turbine below water surface
         self.sub_depth = y_centre - radius
@@ -53,10 +53,22 @@ class underTurbine():
         self.alpha2 = math.pi - self.alpha1
 
     def find_eff_depth(self, alpha, y_centre):
-        return abs(self.radius*np.sin(alpha)) - y_centre
+
+        depth = abs(self.radius*np.sin(alpha)) - y_centre
+
+        if depth < 0:
+            depth = 0
+        elif depth > 0.335: # max depth of turbine
+            depth = 0.335
+        elif depth > self.river.depth: # max depth of river
+            depth = self.river.depth
+
+        return depth
+
+        
 
     def find_drag_force(self, depth):
-        return self.river.rho * self.river.velocity**2 * self.drag_coeff * self.blade_width * depth
+        return 0.5 * self.river.rho * self.river.velocity**2 * self.drag_coeff * self.blade_width * depth
 
     def find_drag_list(self):
         force_list = []
@@ -114,6 +126,13 @@ class underTurbine():
 
         # calculate the average power
         self.avg_power = np.sum(summed_power) / (time  * 100)
+
+        return 0
+    
+    def analysis(self,y_pos, RPM):
+        self.y_centre = y_pos
+        self.find_power(RPM)
+        self.find_average_power()
 
         return 0
 
