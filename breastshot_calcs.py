@@ -41,6 +41,7 @@ class breastTurbine():
     # constructor
     def __init__(self, radius, width, num_blades, x_centre, y_centre, river, hyperparams = [1,1,1]):
         a,b,c = hyperparams
+        self.c = c
 
         self.radius = radius
         self.width = width
@@ -192,6 +193,7 @@ class breastTurbine():
         # torque, mom in units [N m ---- kg m^2 / s^2]
         # power outputted in units [W --- kg m^2 / s^3]
         # the rotational speed must therefore be given in [rot / s]
+        RPM = float(RPM) * self.c
         rot_speed = (RPM / 60) 
         self.RPM = RPM
 
