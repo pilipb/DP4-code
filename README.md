@@ -12,3 +12,21 @@ The model will then be developed to be used in both the breast shot and under sh
 
 The model will also be developed to allow the positioning of the turbine to be varied in respect to a datum set by the river position in the given configuration.
 
+### Structure of files
+
+The models are developed in their respective class files:
+
+breastshot_calcs.py
+undershot_calcs.py
+
+and both make use of the river_class.py
+
+water_mass.ipynb is a workbook used to calculate an approximation of the torque produced by the turbine, the data from this is from the CAD model as assessed by Henry Haslam, UoB, 20/02/23.
+
+test.ipynb is used to test all the functions of the models
+
+testData.ipynb is a test / viewing of the available validation data
+
+validation.ipynb imports the models and test data and compares the results, with an aim to tune the model to fit the real world results better - the outputs of the hyper parameter tuning will be used in any further development.
+
+
