@@ -213,9 +213,6 @@ class breastTurbine():
         # calculate the time taken to complete one rotation
         time = (self.RPM / 60)**-1 # seconds per rotation
 
-        # calculate the angle between each blade
-        blade_angle = 2 * np.pi / self.num_blades
-
         # overlay the power curve for a rotation
         summed_power = np.zeros(100 * self.num_blades)
         for blade in range(self.num_blades):

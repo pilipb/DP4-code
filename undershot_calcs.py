@@ -75,6 +75,8 @@ class underTurbine():
     # calculate instantaneous power for each theta for a given RPM
     def find_power(self, RPM):
 
+        self.RPM = RPM
+
         angular_v = (RPM * 2 * math.pi) / 60 # convert RPM to rad/s
 
         self.find_drag_list()
@@ -82,3 +84,37 @@ class underTurbine():
         power = self.force * angular_v * self.radius
 
         self.power_list = power
+
+
+    def find_average_power(self):
+        '''
+        Average power is calculated by summing the power over one rotation of the turbine
+        and dividing by the time taken to complete one rotation. This will account for the
+        number of blades.
+
+        '''
+
+        # calculate the time taken to complete one rotation
+        time = (self.RPM / 60)**-1 # seconds per rotation
+
+        # overlay the power curve for a rotation
+        summed_power = np.zeros(100 * self.num_blades)
+        for blade in range(self.num_blades):
+            for i, angle in enumerate(self.theta_list):
+                # find the index of the power at each angle
+                idx =  i + (blade * 100)
+                # find the power at each angle
+                summed_power[idx] += self.power_list[i]
+
+        self.avg_power_list = summed_power 
+        self.avg_power_angle = np.linspace(0, 2*np.pi, 100 * self.num_blades)
+
+        # make nan values 0
+        summed_power = np.nan_to_num(summed_power)
+
+        # calculate the average power
+        self.avg_power = np.sum(summed_power) / (time  * 100)
+
+        return 0
+
+
