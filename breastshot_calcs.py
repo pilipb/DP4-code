@@ -190,6 +190,7 @@ class breastTurbine():
         # power outputted in units [W --- kg m^2 / s^3]
         # the rotational speed must therefore be given in [rot / s]
         rot_speed = (RPM / 60) 
+        self.RPM = RPM
 
         power = []
         # sum together the torque and momentum contributions and multiply by rotation accounting for different angles
@@ -198,8 +199,42 @@ class breastTurbine():
 
         self.output_power_list = power
 
-        self.max_power = np.max(power)
-        self.avg_power = np.mean(power)
+
+        return 0
+    
+    def find_average_power(self):
+        '''
+        Average power is calculated by summing the power over one rotation of the turbine
+        and dividing by the time taken to complete one rotation. This will account for the
+        number of blades.
+
+        '''
+
+        # calculate the time taken to complete one rotation
+        time = (self.RPM / 60)**-1 # seconds per rotation
+
+        # calculate the angle between each blade
+        blade_angle = 2 * np.pi / self.num_blades
+
+        # overlay the power curve for a rotation
+        summed_power = np.zeros(100 * self.num_blades)
+        for blade in range(self.num_blades):
+            for i, angle in enumerate(self.theta):
+                # find the index of the power at each angle
+                idx =  i + (blade * 100)
+                # find the power at each angle
+                summed_power[idx] += self.output_power_list[i]
+
+        self.avg_power_list = summed_power 
+        self.avg_power_angle = np.linspace(0, 2*np.pi, 100 * self.num_blades)
+
+        # make nan values 0
+        summed_power = np.nan_to_num(summed_power)
+
+        # calculate the average power
+        self.avg_power = np.sum(summed_power) / (time  * 100)
+
+
 
         return 0
 
