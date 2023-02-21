@@ -39,13 +39,16 @@ import math
 
 class breastTurbine():
     # constructor
-    def __init__(self, radius, width, num_blades, x_centre, y_centre, river):
+    def __init__(self, radius, width, num_blades, x_centre, y_centre, river, hyperparams = [1,1,1]):
+        a,b,c = hyperparams
+
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
-        self.x_centre = x_centre
-        self.y_centre = y_centre
+        self.x_centre = x_centre * a
+        self.y_centre = y_centre * b
         self.river = river
+
 
         self.theta = np.linspace(0, 2 * np.pi, 100)
         self.x = self.radius * np.cos(self.theta) + self.x_centre
@@ -111,8 +114,8 @@ class breastTurbine():
 
         # calculated constants for the quadratic function - check water_mass.ipynb
         a = -21.434243694584918
-        b = 51.40072117993826
-        c = -24.83940255011645
+        b = 51.40072117993826 
+        c = -24.83940255011645 
 
         # calculate torque at each theta
         for i, angle in enumerate(self.theta):
