@@ -33,11 +33,10 @@ import math
 
 class underTurbine():
     # constructor
-    def __init__(self, radius, width, num_blades, max_bucket, y_centre, river):
+    def __init__(self, radius, width, num_blades,  y_centre, river):
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
-        self.max_bucket = max_bucket
         self.y_centre = y_centre
 
         self.river = river

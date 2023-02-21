@@ -4,7 +4,6 @@ This class will contain all the calculations for the breastshot turbine
 Initialise the class with the dimensions of the turbine and a river object
 
 The class contains methods to calculate:
-- bucket mass at each theta for the bucket model
 - torque at each theta
 - the impulse force at each theta
 - the power variation due to the position of the turbine
@@ -43,19 +42,13 @@ import math
 
 class breastTurbine():
     # constructor
-    def __init__(self, radius, width, num_blades, max_bucket, x_centre, y_centre, river):
+    def __init__(self, radius, width, num_blades, x_centre, y_centre, river):
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
-        self.max_bucket = max_bucket
         self.x_centre = x_centre
         self.y_centre = y_centre
         self.river = river
-
-        if self.river.width > 0.8 * self.width:
-            self.max_bucket = self.max_bucket
-        else:
-            self.max_bucket = 33.2 * (self.river.width / self.width)
 
         self.theta = np.linspace(0, 2 * np.pi, 100)
         self.x = self.radius * np.cos(self.theta) + self.x_centre
@@ -110,33 +103,25 @@ class breastTurbine():
         self.theta_entry = theta_entry
         self.theta_exit = theta_exit
         return 0
-
-    # calculate the mass of the bucket at each theta and the max_bucket volume
-    def find_bucket_torque(self):
-        '''
-        the max mass x COM 
-        '''
-
-        # calculate the mass of the bucket at each theta
-        self.bucket_mass_list = []
-        for theta in self.theta:
-            # assumes that 
-            if theta < math.pi/4:
-                mass = (self.max_bucket)/((math.pi/4)-self.theta_entry)* theta
-                self.bucket_mass_list.append(mass)
-                
-            else:
-                mass = ((self.max_bucket/(self.theta_exit-(math.pi/4))))* (self.theta_exit-theta) #self.max_bucket - 
-                self.bucket_mass_list.append(mass)
-        return 0
-
-                                             
+                                          
     def find_torque(self):
+        '''
+        From the CAD model, the mass of the water in the bucket, COM and therefore the torque has been calculated
+        and is stored in a csv file. This function approximates the torque at each theta with a quadratic function.
+        '''
         # calculate torque at each theta
         torque = []
+
+        # calculated constants for the quadratic function - check water_mass.ipynb
+        a = -21.434243694584918
+        b = 51.40072117993826
+        c = -24.83940255011645
+
         # calculate torque at each theta
         for i, angle in enumerate(self.theta):
-            torque_val = self.bucket_mass_list[i] * self.radius * np.sin(angle) * self.g
+            torque_val = a*(angle**2) + b*angle + c
+            if torque_val < 0:
+                torque_val = 0
             torque.append(torque_val)
 
         self.torque_list = torque
@@ -144,53 +129,65 @@ class breastTurbine():
 
     # calculate change in momentum at each theta
     def find_momentum(self):
-        self.mom_list = []
-        river = self.river
-        # find the x_nappe value at the point where y_nappe is closest to the turbine centre
-        y_diff = min(river.y_nappe, key=lambda x:abs(x-self.y_centre))
-        x_interest = river.x_nappe[river.y_nappe == y_diff]
-
-        # calculate distance between nappe flow and turbine centre
-        hor_dist = abs(x_interest - self.x_centre)
-
-        # river cross section
-        river_area = river.width * river.depth
-
-        for i, angle in enumerate(self.theta):
-
-            fall_height = abs(self.y_centre +  self.radius * np.cos(angle))
-
-            # calculate velocity of nappe flow at each theta
-            flow_velocity = ((river.velocity)**2 + (self.g * fall_height * 2))**0.5
-
-            # calculate momentum transfer as a fraction of the contact area vs the cross section of the river
-            total_mom_river = river.vol_flow_rate * river.rho * flow_velocity/river.velocity
-
-            fraction_contact = (self.radius * np.sin(angle) * self.width) / river_area
-
-            mom_transfer = abs(1 - (hor_dist/self.radius)) * total_mom_river * fraction_contact
-
-            # the rotational momentum transfer is momentum transfer * radius - which will be the average impact radius
-            avg_impact_radius = self.radius - (self.radius - hor_dist)/2
-            rot_mom_transfer = mom_transfer * avg_impact_radius
-
-            self.mom_list.append(rot_mom_transfer)
-        return 0
-    
-        ''' 
-        Momentum transfer will only occur while the blade has a direct line of sight with the waterfall.
-
-        Here maybe calculate the proportion of the river that misses the turbine,
-        and then use that to get a more accurate momentum transfer
         '''
+        assume that the momentum change occurs in the same range as the torque
+        calculate the area of the blade in contact with the water at each theta
+        calculate the velocity of the water at each theta
+        calculate the change in momentum at each theta
+
+        the incoming start angle will be calculated as the angle at which the river.x_nappe, river.y_nappe
+        first intersects with the turbine radius and the exit angle will always be pi
+
+        '''
+
+        # loop through the river coordinates and find the point closest to the turbine centre
+        distance = 10
+        for i in range(len(self.river.x_nappe)):
+            dist = np.linalg.norm(np.array([self.river.x_nappe[i], self.river.y_nappe[i]]) - np.array([self.x_centre, self.y_centre]))
+            if dist < distance:
+                distance = dist
+                incoming_point = [self.river.x_nappe[i], self.river.y_nappe[i]]
+            
+        # calculate the angle at which the incoming point is located
+        incoming_angle = np.arctan((self.x_centre - incoming_point[0]) / ( incoming_point[1] - self.y_centre))
+
+        # calculate the area of the blade in contact with the water at each theta
+        blade_area = []
+
+        # theta range is the range of angles between the incoming angle and pi
+        theta_range = np.linspace(incoming_angle, np.pi, 100)
+
+        for _ , angle in enumerate(theta_range-incoming_angle):
+            blade_area.append(self.width * self.radius * np.sin(angle))
+
+        mom_list = []
+        # calculate the velocity of the water at each theta
+        for i, angle in enumerate(theta_range):
+
+            fall_height = (abs(self.y_centre) -  self.radius * np.cos(angle))
+            # calculate velocity of nappe flow at each theta
+            flow_velocity = ((self.river.velocity)**2 + (self.g * fall_height * 2))**0.5
+
+            # calculate momentum transfer as the  A * rho * v
+            momentum = blade_area[i] * self.river.rho * flow_velocity
+
+            # if momentum is negative, set to 0
+            if momentum < 0:
+                momentum = 0
+
+            # append to list
+            mom_list.append(momentum)
+
+        self.mom_list = mom_list
+        return 0
 
     def find_power(self, RPM):
         # the total power at each theta is the sum of the momentum and torque forces
         # multiplied by the rotational speed RPM
         # torque, mom in units [N m ---- kg m^2 / s^2]
         # power outputted in units [W --- kg m^2 / s^3]
-        # the rotational speed must therefore be given in [rad / s]
-        rot_speed = (RPM / 60) * 2 * math.pi
+        # the rotational speed must therefore be given in [rot / s]
+        rot_speed = (RPM / 60) 
 
         power = []
         # sum together the torque and momentum contributions and multiply by rotation
