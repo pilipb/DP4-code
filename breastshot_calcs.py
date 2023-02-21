@@ -12,7 +12,6 @@ The class contains methods to calculate:
 Parameters:
 radius - float: radius of the turbine
 num_blades - int: number of blades on the turbine
-max_bucket - float: maximum mass of the bucket
 width - float: width of the turbine
 x_centre - float: x coordinate of the centre of the turbine
 y_centre - float: y coordinate of the centre of the turbine
@@ -22,13 +21,11 @@ Methods:
 find_intersects - calculates the coordinates of the intersects between the
                     river and the radius of the turbine
 find_theta_range - calculates the range of useful theta
-find_bucket_mass - calculates the mass of the bucket at each theta
 find_torque - calculates the torque at each theta
 find_momentum - calculates the impulse force transfered at each theta
 power - calculates the power variation due to the position of the turbine
 
 return:
-bucket_mass - array: mass of the bucket at each theta
 torque - array: torque at each theta
 impulse - array: impulse force at each theta
 power - array: power variation due to the position of the turbine
@@ -125,6 +122,7 @@ class breastTurbine():
             torque.append(torque_val)
 
         self.torque_list = torque
+        self.torque_angle = self.theta
         return 0
 
     # calculate change in momentum at each theta
@@ -157,12 +155,14 @@ class breastTurbine():
         # theta range is the range of angles between the incoming angle and pi
         theta_range = np.linspace(incoming_angle, np.pi, 100)
 
-        for _ , angle in enumerate(theta_range-incoming_angle):
+        diff = self.theta_entry -  incoming_angle
+
+        for _ , angle in enumerate(theta_range-incoming_angle - diff):
             blade_area.append(self.width * self.radius * np.sin(angle))
 
         mom_list = []
         # calculate the velocity of the water at each theta
-        for i, angle in enumerate(theta_range):
+        for i, angle in enumerate(self.theta):
 
             fall_height = (abs(self.y_centre) -  self.radius * np.cos(angle))
             # calculate velocity of nappe flow at each theta
@@ -179,6 +179,8 @@ class breastTurbine():
             mom_list.append(momentum)
 
         self.mom_list = mom_list
+        self.mom_angle = self.theta
+
         return 0
 
     def find_power(self, RPM):
@@ -190,9 +192,9 @@ class breastTurbine():
         rot_speed = (RPM / 60) 
 
         power = []
-        # sum together the torque and momentum contributions and multiply by rotation
-        for i, mom in enumerate(self.mom_list):
-            power.append((mom + self.torque_list[i]) * rot_speed)
+        # sum together the torque and momentum contributions and multiply by rotation accounting for different angles
+        for i, angle in enumerate(self.theta):
+            power.append((self.torque_list[i] + self.mom_list[i]) * rot_speed )
 
         self.output_power_list = power
 
@@ -203,30 +205,5 @@ class breastTurbine():
 
 
 
-
-        
-if __name__ == '__main__':
-    from river_class import river_obj
-
-    # create a river object
-    river = river_obj(5,1.2,1.5)
-
-    # create a breastshot turbine
-    turbine = breastTurbine(0.8,1.1,5,8.7,0.65,0.1,river)
-
-    plt.plot(river.x_nappe, river.y_nappe)
-
-
-    turbine.find_intersects()
-
-    # plot turbine.x, turbine.y
-    plt.plot(turbine.x, turbine.y)
-    plt.plot(turbine.x_centre, turbine.y_centre, 'ro')
-    plt.plot(turbine.x_intersect[0], turbine.y_intersect[0], 'ro')
-    plt.plot(turbine.x_intersect[-1], turbine.y_intersect[-1], 'ro')
-    plt.xlim(-0.7, 8)
-    plt.ylim(-3, 5)
-    plt.show()
-        
 
                                 
