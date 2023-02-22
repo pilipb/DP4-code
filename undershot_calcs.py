@@ -38,11 +38,18 @@ class underTurbine():
         self.width = width
         self.num_blades = num_blades
         self.y_centre = y_centre
+        self.x_centre = 2
 
         self.river = river
         self.g = 9.81
         self.drag_coeff = 2.3 # from consultancy report
         self.blade_width = width # from CAD
+
+        # for drawing
+        self.theta = np.linspace(0, 2 * np.pi, 100)
+        self.x = self.radius * np.cos(self.theta) + self.x_centre
+        self.y = self.radius * np.sin(self.theta) + self.y_centre
+
 
         # depth of turbine below water surface
         self.sub_depth = y_centre - radius
@@ -134,6 +141,6 @@ class underTurbine():
         self.find_power(RPM)
         self.find_average_power()
 
-        return 0
+        return self.avg_power
 
 
