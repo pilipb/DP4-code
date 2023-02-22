@@ -41,13 +41,15 @@ class breastTurbine():
     # constructor
     def __init__(self, radius, width, num_blades, x_centre, y_centre, river, hyperparams = [1,1,1]):
         a,b,c = hyperparams
+        self.a = a
+        self.b = b
         self.c = c
 
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
-        self.x_centre = x_centre * a
-        self.y_centre = y_centre * b
+        self.x_centre = x_centre 
+        self.y_centre = y_centre 
         self.river = river
 
 
@@ -114,9 +116,9 @@ class breastTurbine():
         torque = []
 
         # calculated constants for the quadratic function - check water_mass.ipynb
-        a = -21.434243694584918
-        b = 51.40072117993826 
-        c = -24.83940255011645 
+        a = -21.434243694584918 * self.a
+        b = 51.40072117993826 * self.b
+        c = -24.83940255011645 * self.c
 
         # calculate torque at each theta
         for i, angle in enumerate(self.theta):
@@ -240,19 +242,20 @@ class breastTurbine():
 
         return 0
     
-    def analysis(self,x_centre,y_centre, RPM):
+    def analysis(self,x_centre,y_centre, RPM , hyperparams=[1,1,1]):
         '''
         Run the analysis for the turbine at the given RPM
         '''
         self.x_centre = x_centre
         self.y_centre = y_centre
+        self.hyperparams = hyperparams
         self.find_intersects()
         self.find_theta_range()
         self.find_torque()
         self.find_momentum()
         self.find_power(RPM)
         self.find_average_power()
-        return 0
+        return self.avg_power
 
 
 
