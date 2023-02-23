@@ -73,7 +73,7 @@ def optimise_turbine(turbine, river, type):
         under_turbine = underTurbine(turbine.radius, turbine.width, turbine.num_blades, res.x, river)
 
         # calculate the power 
-        power = under_turbine.analysis()
+        power = under_turbine.analysis(res.x, RPM = 15)
         return power, res.x
     
     elif type == "breastshot":
@@ -101,27 +101,27 @@ def optimise_turbine(turbine, river, type):
         turbine = breastTurbine(turbine.radius, turbine.width, turbine.num_blades, newx, newy, river)
 
         # calculate the power
-        power = turbine.analysis()
+        power = turbine.analysis(newx, newy, RPM = 15)
 
         return power, [newx, newy]
     
 
-# define a function to calculate the power output
-def calc_func(radius, width, num_blades, turbine_type, river_width, river_depth, river_velocity):
-    river = river_obj(river_width, river_depth, river_velocity)
+# # define a function to calculate the power output
+# def calc_func(radius, width, num_blades, turbine_type, river_width, river_depth, river_velocity):
+#     river = river_obj(river_width, river_depth, river_velocity)
     
-    if turbine_type == "undershot":
-        turbine = underTurbine(radius, width, num_blades, -0.1, river)
-        power, newy = optimise_turbine(turbine, river, turbine_type)
+#     if turbine_type == "undershot":
+#         turbine = underTurbine(radius, width, num_blades, -0.1, river)
+#         power, newy = optimise_turbine(turbine, river, turbine_type)
 
-    elif turbine_type == "breastshot":
-        turbine = breastTurbine(radius, width, num_blades, 1, -0.2, river)
-        power, newy = optimise_turbine(turbine, river, turbine_type)
+#     elif turbine_type == "breastshot":
+#         turbine = breastTurbine(radius, width, num_blades, 1, -0.2, river)
+#         power, newy = optimise_turbine(turbine, river, turbine_type)
         
-    else:
-        print("Please enter a valid turbine type")
+#     else:
+#         print("Please enter a valid turbine type")
 
-    return power, newy, turbine
+#     return power, newy, turbine
 
 '''
 Create a GUI that will take the users input, calculate the optimal power output and display it to the user and display
@@ -135,10 +135,10 @@ class GUI(tk.Tk):
         super().__init__()
 
         # set the title of the GUI
-        self.title("Turbine Optimisation")
+        self.title("Pico Stream Hydro Turbine")
 
         # set the size of the GUI
-        self.geometry("800x600")
+        self.geometry("1000x800")
 
         # set the background colour of the GUI
         self.configure(bg = "white")
@@ -210,11 +210,17 @@ class GUI(tk.Tk):
         self.river_velocity_entry.grid(row = 7, column = 1, pady = 10)
 
         # create a button to calculate the power output
-        self.calc_button = tk.Button(self.frame, text = "Calculate Power Output", command = self.calc_power)
-        self.calc_button.grid(row = 8, column = 0, columnspan = 2, pady = 10)
+        self.calc_button = tk.Button(self.frame, text = "Calculate Power Output", command = self.calc_power) 
+        self.calc_button.bind("<Return>", self.calc_power)
+        self.calc_button.grid(row = 8, column = 0, columnspan = 1, pady = 10)
+
+        # create a button to display the turbine
+        self.turbine_display = tk.Button(self.frame, text = "Display Turbine", command = self.display_turbine)
+        self.calc_button.bind("<Return>", self.display_turbine)
+        self.turbine_display.grid(row = 8, column = 1, columnspan = 1, pady = 10)
 
         # create a label for the power output
-        self.power_label = tk.Label(self.frame, text = "Power Output:", bg = "white", font = ("Arial", 12))
+        self.power_label = tk.Label(self.frame, text = "Average Power Output:", bg = "white", font = ("Arial", 12))
         self.power_label.grid(row = 9, column = 0, pady = 10)
 
         # create a label to display the power output
@@ -228,6 +234,42 @@ class GUI(tk.Tk):
         # create a label to display the optimal position
         self.position_display = tk.Label(self.frame, text = "", bg = "white", font = ("Arial", 12))
         self.position_display.grid(row = 11, column = 1, pady = 10)
+
+        
+    def display_turbine(self):
+        # get the values from the return from calc_power
+        turbine = self.turbine
+
+        # create a canvas to display the turbine
+        self.turbine_canvas = tk.Canvas(self.frame, width = 500, height = 500, bg = "white")
+        self.turbine_canvas.grid(row = 10, column = 0, columnspan = 2, pady = 10)
+
+        # draw the turbine using matplotlib
+        fig, ax = plt.subplots()
+        ax.plot(turbine.x_centre, turbine.y_centre, "ro")
+        ax.plot(turbine.x, turbine.y, "r-")
+
+        # plot the river
+        if self.turbine_type == "undershot":
+            ax.plot([0,4],[-turbine.river.depth, -turbine.river.depth], "b-")
+        elif self.turbine_type == "breastshot":
+            ax.plot(turbine.river.x_nappe,turbine.river.y_nappe, "b-")
+
+        ax.set_xlim(0 , 4)
+        ax.set_ylim(-2, 2)
+        ax.set_title("Turbine")
+        ax.set_xlabel("x (m)")
+        ax.set_ylabel("y (m)")
+        fig.show()
+
+        canvas = FigureCanvasTkAgg(fig, self)
+        canvas.show()
+        canvas.get_tk_widget().pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True)
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        
+        
+        
 
     def calc_power(self):
 
@@ -243,14 +285,18 @@ class GUI(tk.Tk):
         # create a river object
         river = river_obj(river_width, river_depth, river_velocity)
 
+        self.turbine_type = turbine_type
+
         if turbine_type == "undershot":
 
-            
             # create a turbine object
             turbine = underTurbine(radius, width, num_blades, 0, river)
 
             # calculate the optimal position of the turbine
             power , y_opt = optimise_turbine(turbine, river, turbine_type)
+
+            # re-create the turbine object with the optimal position
+            turbine = underTurbine(radius, width, num_blades, y_opt, river)
 
         elif turbine_type == "breastshot":
                 
@@ -260,13 +306,27 @@ class GUI(tk.Tk):
             # calculate the optimal position of the turbine
             power , y_opt = optimise_turbine(turbine, river, turbine_type)
 
+            # re-create the turbine object with the optimal position
+            turbine = breastTurbine(radius, width, num_blades, y_opt[0], y_opt[1], river)
+
+        # store the optimal position
+        self.y_opt = y_opt
+
+        # store the turbine
+        self.turbine = turbine
 
     
         # display the power output
         self.power_display.config(text = str(power) + " W")
 
         # display the optimal position
-        self.position_display.config(text = str(y_opt) + " m")
+        if turbine_type == "undershot":
+            self.position_display.config(text ="y = " + str(np.round(y_opt[0],2)) + " m")
+        elif turbine_type == "breastshot":
+            self.position_display.config(text = "x = " + str(np.round(y_opt[0],2)) + " y = " + str(np.round(y_opt[1],2)) + " m")
+
+        return self.power_display, self.position_display
+
 
   
 if __name__ == "__main__":
