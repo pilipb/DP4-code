@@ -10,25 +10,28 @@ The class contains methods to calculate:
 
 
 Parameters:
-radius - float: radius of the turbine
-num_blades - int: number of blades on the turbine
-width - float: width of the turbine
-x_centre - float: x coordinate of the centre of the turbine
-y_centre - float: y coordinate of the centre of the turbine
-river - object: river object containing the river parameters
+----------------
+    radius - float: radius of the turbine
+    num_blades - int: number of blades on the turbine
+    width - float: width of the turbine
+    x_centre - float: x coordinate of the centre of the turbine
+    y_centre - float: y coordinate of the centre of the turbine
+    river - object: river object containing the river parameters
 
 Methods:
-find_intersects - calculates the coordinates of the intersects between the
-                    river and the radius of the turbine
-find_theta_range - calculates the range of useful theta
-find_torque - calculates the torque at each theta
-find_momentum - calculates the impulse force transfered at each theta
-power - calculates the power variation due to the position of the turbine
+----------------
+    find_intersects - calculates the coordinates of the intersects between the
+                        river and the radius of the turbine
+    find_theta_range - calculates the range of useful theta
+    find_torque - calculates the torque at each theta
+    find_momentum - calculates the impulse force transfered at each theta
+    power - calculates the power variation due to the position of the turbine
 
-return:
-torque - array: torque at each theta
-impulse - array: impulse force at each theta
-power - array: power variation due to the position of the turbine
+Return:
+----------------
+    torque - array: torque at each theta
+    impulse - array: impulse force at each theta
+    power - array: power variation due to the position of the turbine
 
 '''
 

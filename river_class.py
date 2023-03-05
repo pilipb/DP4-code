@@ -9,20 +9,22 @@ of which turbine is used as a zero head river will allow the selection of an und
 The measurement inputs to this class should be relatively easy to achieve.
 
 Parameters:
-width - float: the width of the river in m prior to a nappe (if applicable)
-depth - float: the depth of the river in m prior to a nappe (if applicable)
-velocity - float: the free stream velocity of the river prior to a nappe (if applicable)
-head - float: the head of the waterfall, 0 if not existant
+----------------
+    width - float: the width of the river in m prior to a nappe (if applicable)
+    depth - float: the depth of the river in m prior to a nappe (if applicable)
+    velocity - float: the free stream velocity of the river prior to a nappe (if applicable)
+    head - float: the head of the waterfall, 0 if not existant
 
 Methods:
 NONE
 
 Returns:
-vol_flow_rate - float: the volumetric flow rate of the river
-y_nappe - array: the y coordinates of the 'top' of the river
-x_nappe - array: the corresponding x coordinates
-y_bed - array: the y coordinates of the river bed
-x_bed - array: the corresponding x coordinates
+----------------
+    vol_flow_rate - float: the volumetric flow rate of the river
+    y_nappe - array: the y coordinates of the 'top' of the river
+    x_nappe - array: the corresponding x coordinates
+    y_bed - array: the y coordinates of the river bed
+    x_bed - array: the corresponding x coordinates
 
 NOTE the returned coordinates are only after the nappe (assuming left to right flow)
 the head does not impact the calculations and can be left empty unless defined otherwise.

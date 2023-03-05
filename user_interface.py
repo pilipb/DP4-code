@@ -15,18 +15,21 @@ The user will be asked to input the following:
 The program will then calculate the optimal power output of the turbine and display it to the user with the optimal
 position of the turbine.
 
+
 Parameters:
-radius - float: radius of the turbine
-width - float: width of the turbine
-num_blades - int: number of blades on the turbine
-turbine_type - string: type of turbine (undershot or breastshot)
-river_width - float: width of the river
-river_depth - float: depth of the river
-river_velocity - float: velocity of the river
+----------------
+    radius - float: radius of the turbine
+    width - float: width of the turbine
+    num_blades - int: number of blades on the turbine
+    turbine_type - string: type of turbine (undershot or breastshot)
+    river_width - float: width of the river
+    river_depth - float: depth of the river
+    river_velocity - float: velocity of the river
 
 Return:
-power - float: optimal power output of the turbine
-centre - array: optimal position of the turbine
+----------------
+    power - float: optimal power output of the turbine
+    centre - array: optimal position of the turbine
 
 '''
 
