@@ -43,7 +43,7 @@ import scipy.optimize as opt
 
 class breastTurbine():
     # constructor
-    def __init__(self, radius, width, num_blades, x_centre, y_centre, river, hyperparams = [1,1,1]): # updated from validation
+    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 5, x_centre = 0, y_centre = 0, hyperparams = [1,1,1]): # updated from validation
         a,b,c = hyperparams
 
 
@@ -134,25 +134,15 @@ class breastTurbine():
         # max torque
         self.max_torque = max(self.torque_list)
 
-        # scale all torque values by a function of RPM, n_blades and vol_flow_rate
-        n_blades = self.num_blades
-        vol_flow_rate = self.river.vol_flow_rate
+        # # scale all torque values by a function of RPM, n_blades and vol_flow_rate
+        # n_blades = self.num_blades
+        # vol_flow_rate = self.river.vol_flow_rate
 
-        for i, torque in enumerate(self.torque_list):
-            sf = (60 * vol_flow_rate / (n_blades * RPM * self.max_torque))
-            self.torque_list[i] = torque * sf
+        # for i, torque in enumerate(self.torque_list):
+        #     sf = (60 * vol_flow_rate / (n_blades * RPM * self.max_torque))
+        #     self.torque_list[i] = torque * sf
 
         return 0
-
-        '''
-        The volume of a bucket is related to the RPM of the turbine:
-
-        volume = ((RPM * 60)/n_blades) * vol_flow_rate
-
-
-        '''
-
-
 
     # calculate change in momentum at each theta
     def find_momentum(self):
@@ -319,6 +309,21 @@ class breastTurbine():
         RPM =( (flow_velocity / self.radius) / 60) * 2*np.pi
 
         return RPM
+
+    def plot_turbine(self):
+        '''
+        Plot the turbine
+        '''
+        # plot the turbine
+        plt.figure()
+        plt.plot(self.x_centre, self.y_centre, color='r')
+        plt.plot(self.x, self.y, color='r')
+        plt.plot(self.river.x_nappe, self.river.y_nappe, color='b')
+        plt.plot(self.river.x_bed, self.river.y_bed, color='b')
+        plt.xlim(-1,1)
+        plt.ylim(-1,1)
+        plt.show()
+
 
 
         

@@ -1,5 +1,6 @@
 # imports
 import numpy as np
+import matplotlib.pyplot as plt
 
 '''
 This class will construct a river object that will contain all the information needed
