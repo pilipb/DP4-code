@@ -39,10 +39,11 @@ Return:
 import numpy as np
 import matplotlib.pyplot as plt
 import math
+import scipy.optimize as opt
 
 class breastTurbine():
     # constructor
-    def __init__(self, radius, width, num_blades, x_centre, y_centre, river, hyperparams = [0.5939999999999996,1.0859999999999905,1]): # updated from validation
+    def __init__(self, radius, width, num_blades, x_centre, y_centre, river, hyperparams = [1,1,1]): # updated from validation
         a,b,c = hyperparams
 
 
@@ -108,7 +109,7 @@ class breastTurbine():
         self.theta_exit = theta_exit
         return 0
                                           
-    def find_torque(self):
+    def find_torque(self, RPM):
         '''
         From the CAD model, the mass of the water in the bucket, COM and therefore the torque has been calculated
         and is stored in a csv file. This function approximates the torque at each theta with a quadratic function.
@@ -128,9 +129,30 @@ class breastTurbine():
                 torque_val = 0
             torque.append(torque_val)
 
-        self.torque_list = torque
-        self.torque_angle = self.theta
+        self.torque_list = np.array(torque)
+
+        # max torque
+        self.max_torque = max(self.torque_list)
+
+        # scale all torque values by a function of RPM, n_blades and vol_flow_rate
+        n_blades = self.num_blades
+        vol_flow_rate = self.river.vol_flow_rate
+
+        for i, torque in enumerate(self.torque_list):
+            sf = (60 * vol_flow_rate / (n_blades * RPM * self.max_torque))
+            self.torque_list[i] = torque * sf
+
         return 0
+
+        '''
+        The volume of a bucket is related to the RPM of the turbine:
+
+        volume = ((RPM * 60)/n_blades) * vol_flow_rate
+
+
+        '''
+
+
 
     # calculate change in momentum at each theta
     def find_momentum(self):
@@ -196,7 +218,7 @@ class breastTurbine():
         # torque, mom in units [N m ---- kg m^2 / s^2]
         # power outputted in units [W --- kg m^2 / s^3]
         # the rotational speed must therefore be given in [rot / s]
-        RPM = float(RPM) * self.c
+        RPM = float(RPM) 
         rot_speed = (RPM / 60) 
         self.RPM = RPM
 
@@ -252,11 +274,54 @@ class breastTurbine():
         self.hyperparams = hyperparams
         self.find_intersects()
         self.find_theta_range()
-        self.find_torque()
+        self.find_torque(RPM)
         self.find_momentum()
         self.find_power(RPM)
         self.find_average_power()
         return self.avg_power
+    
+    def optimise(self, RPM, hyperparams=[1,1,1]):
+        '''
+        Optimise the turbine position to maximise the average power output
+        '''
+        # first define the function to be optimised
+        def fun(Y):
+            # unpack the variables
+            x, y = Y
+            # define the power
+            power = self.analysis(x , y  , RPM = RPM)
+            
+            return -power
+        
+        # define the initial guess
+        x0 = [1, -0.2]
+
+        # run the optimisation
+        res = opt.fmin(fun, x0 )
+
+        # print the results
+        newx, newy = res
+
+        # average power at the new position
+        power = self.analysis(newx, newy, RPM = RPM)
+
+        # return the optimal power
+        return power, newx, newy
+    
+
+    # calculate the RPM 
+    def find_RPM(self):
+
+        # find the velocity of the nappe flow at the edge of the turbine
+        flow_velocity = self.river.v_nappe
+
+        # calculate the RPM
+        RPM =( (flow_velocity / self.radius) / 60) * 2*np.pi
+
+        return RPM
+
+
+        
 
 
 
