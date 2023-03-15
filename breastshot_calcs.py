@@ -113,6 +113,7 @@ class breastTurbine():
         '''
         From the CAD model, the mass of the water in the bucket, COM and therefore the torque has been calculated
         and is stored in a csv file. This function approximates the torque at each theta with a quadratic function.
+
         '''
         # calculate torque at each theta
         torque = []
@@ -122,26 +123,27 @@ class breastTurbine():
         b = 51.40072117993826 
         c = -24.83940255011645 
 
+        seconds_per_blade = (60 / RPM ) / self.num_blades
+
         # calculate torque at each theta
         for i, angle in enumerate(self.theta):
-            torque_val = a*(angle**2) + b*angle + c
+            torque_val = (a*(angle**2) + b*angle + c) 
             if torque_val < 0:
                 torque_val = 0
             torque.append(torque_val)
 
+        
+
+        # calculate max torque
+        self.max_torque = max(torque)
+
+        # seconds to fill bucket at max torque 
+        self.seconds_full = self.max_torque /( self.river.rho * self.river.vol_flow_rate * self.radius/1.5)
+
+        # scale the torque by the ratio of seconds per blade over seconds to fill bucket
+        torque = [torque_val * (seconds_per_blade / self.seconds_full) for torque_val in torque]
+        
         self.torque_list = np.array(torque)
-
-        # max torque
-        self.max_torque = max(self.torque_list)
-
-        # # scale all torque values by a function of RPM, n_blades and vol_flow_rate
-        # n_blades = self.num_blades
-        # vol_flow_rate = self.river.vol_flow_rate
-
-        # for i, torque in enumerate(self.torque_list):
-        #     sf = (60 * vol_flow_rate / (n_blades * RPM * self.max_torque))
-        #     self.torque_list[i] = torque * sf
-
         return 0
 
     # calculate change in momentum at each theta
@@ -154,6 +156,8 @@ class breastTurbine():
 
         the incoming start angle will be calculated as the angle at which the river.x_nappe, river.y_nappe
         first intersects with the turbine radius and the exit angle will always be pi
+
+        
 
         '''
 
@@ -255,7 +259,7 @@ class breastTurbine():
 
         return 0
     
-    def analysis(self,x_centre,y_centre, RPM , hyperparams=[1,1,1]):
+    def analysis(self,x_centre,y_centre, RPM = 0, hyperparams=[1,1,1]):
         '''
         Run the analysis for the turbine at the given RPM
         '''
@@ -264,16 +268,20 @@ class breastTurbine():
         self.hyperparams = hyperparams
         self.find_intersects()
         self.find_theta_range()
+        if RPM == 0:
+            RPM = self.find_RPM()
         self.find_torque(RPM)
         self.find_momentum()
         self.find_power(RPM)
         self.find_average_power()
         return self.avg_power
     
-    def optimise(self, RPM, hyperparams=[1,1,1]):
+    def optimise(self, RPM =0, hyperparams=[1,1,1]):
         '''
         Optimise the turbine position to maximise the average power output
         '''
+        if RPM == 0:
+            RPM = self.find_RPM()
         # first define the function to be optimised
         def fun(Y):
             # unpack the variables
@@ -284,7 +292,7 @@ class breastTurbine():
             return -power
         
         # define the initial guess
-        x0 = [1, -0.2]
+        x0 = [1,0]
 
         # run the optimisation
         res = opt.fmin(fun, x0 )
@@ -302,11 +310,13 @@ class breastTurbine():
     # calculate the RPM 
     def find_RPM(self):
 
-        # find the velocity of the nappe flow at the edge of the turbine
-        flow_velocity = self.river.v_nappe
+        # extract velocity
+        velocity = self.river.velocity
 
-        # calculate the RPM
-        RPM =( (flow_velocity / self.radius) / 60) * 2*np.pi
+        # calculate the rotational speed
+        RPM = (velocity * 60) / (4 * np.pi * self.radius)
+
+        print('Turbine RPM: ', RPM)
 
         return RPM
 

@@ -57,5 +57,14 @@ class household():
         # define sell back rate
         self.sell_back_rate = 0.041 # £/kWh
 
+    def payback(self, turbine, river):
+        # calculate the payback period of the turbine
+        # turbine_cost - float: the cost of the turbine in £
+        # turbine - object: the turbine object
+        # river - object: the river object
+
+        # calculate the energy produced by the turbine
+        energy_produced = turbine.avg_power * 365 * 24 * 3600
+
 
             
