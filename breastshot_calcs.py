@@ -316,11 +316,11 @@ class breastTurbine():
         '''
         # plot the turbine
         plt.figure()
-        plt.plot(self.x_centre, self.y_centre, color='r')
+        plt.plot(self.x_centre, self.y_centre, color='r', marker='o')
         plt.plot(self.x, self.y, color='r')
         plt.plot(self.river.x_nappe, self.river.y_nappe, color='b')
         plt.plot(self.river.x_bed, self.river.y_bed, color='b')
-        plt.xlim(-1,1)
+        plt.xlim(0,2)
         plt.ylim(-1,1)
         plt.show()
 
