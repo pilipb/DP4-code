@@ -40,6 +40,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import scipy.optimize as opt
+import warnings
 
 class breastTurbine():
     # constructor
@@ -255,8 +256,6 @@ class breastTurbine():
         # calculate the average power
         self.avg_power = np.sum(summed_power) / (time  * 100)
 
-
-
         return 0
     
     def analysis(self,x_centre,y_centre, RPM = 0, hyperparams=[1,1,1]):
@@ -280,6 +279,8 @@ class breastTurbine():
         '''
         Optimise the turbine position to maximise the average power output
         '''
+
+        warnings.filterwarnings("ignore")
         if RPM == 0:
             RPM = self.find_RPM()
         # first define the function to be optimised
@@ -303,6 +304,12 @@ class breastTurbine():
         # average power at the new position
         power = self.analysis(newx, newy, RPM = RPM)
 
+        print('The optimised average power output of the turbine is: %.2f W' % power)
+
+        # hide warnings
+
+        
+
         # return the optimal power
         return power, newx, newy
     
@@ -316,7 +323,7 @@ class breastTurbine():
         # calculate the rotational speed
         RPM = (velocity * 60) / (4 * np.pi * self.radius)
 
-        print('Turbine RPM: ', RPM)
+        print('Turbine RPM: %.2f' % RPM)
 
         return RPM
 
@@ -333,6 +340,8 @@ class breastTurbine():
         plt.xlim(0,2)
         plt.ylim(-1,1)
         plt.show()
+
+        print('The turbine centre is positioned at: (%.2f, %.2f)' %(self.x_centre, self.y_centre))
 
 
 
