@@ -64,30 +64,29 @@ class breastTurbine():
 
     def find_intersects(self):
         # find the intersection of the turbine and the river
-        # find the x and y coordinates of the intersection
+        # find the x and y coordinates of the intersection and the corresponding angles
         x_intersect = []
         y_intersect = []
 
         # intersection occurs when both the x and y differences between the turbine and river are approximately 0
         for i, xval in enumerate(self.river.x_nappe):
             for j, xxval in enumerate(self.x):
-                if abs(xval - xxval) < 0.1:
-                    if abs(self.y[j] - self.river.y_nappe[i]) < 0.1:
-                        x_intersect.append(self.x[j])
-                        y_intersect.append(self.y[j])
+                if abs(xval - xxval) < 0.1 and abs(self.y[j] - self.river.y_nappe[i]) < 0.1:
+                    x_intersect.append(self.x[j])
+                    y_intersect.append(self.y[j])
 
         self.x_intersect = x_intersect
         self.y_intersect = y_intersect
         return 0
     
     def find_theta_range(self):
-        # calculate theta_entry and theta_exit
+        # calculate theta_entry and theta_exit (alpha 1,2)
         
         # check that theta_entry is less than pi/2
         try:
-            if self.x_intersect[0] > self.x_centre:
+            if self.x_intersect[0] > self.x_centre: # if the river intersection over shoots the turbine
                 theta_entry = 0
-            if self.y_intersect[0] < self.y_centre:
+            if self.y_intersect[0] < self.y_centre: # if the turbine centre is above the river intersection
                 theta_entry = math.pi/2
             else:
                 theta_entry = np.arctan(abs(self.x_centre - self.x_intersect[0]) / abs(self.y_centre - self.y_intersect[0]))
@@ -104,12 +103,56 @@ class breastTurbine():
         except IndexError:
             print('No intersection found')
             return 1
-        # calculate torque at each theta
+        
+        # calculate the theta range
         self.theta = np.linspace(theta_entry, theta_exit, 100)
         self.theta_entry = theta_entry
         self.theta_exit = theta_exit
         return 0
-                                          
+
+
+    def find_blade_v(self, theta, RPM):
+        '''
+        calculate the velocity of the blade at each theta
+        '''
+        # calculate the angular velocity of the turbine in radians per second
+        omega = 2 * np.pi * RPM / 60
+
+        # calculate the vertical velocity of the blade at each theta
+        blade_v = omega * self.radius * np.sin(theta)
+
+        return blade_v
+
+    
+    def find_filling_rate(self, theta, RPM):
+        '''
+        calculate the filling rate of the bucket at each theta
+        '''
+        # calculate the falling velocity of the water
+        fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
+
+        # calculate the filling rate in m^3/s at each theta
+        filling_rate = self.width * self.radius * np.sin(theta) * (fall_v - self.find_blade_v(theta, RPM))
+
+        return filling_rate
+
+    def find_vol(self, theta, RPM):
+        '''
+        the volume of water in the bucket at each theta is the integral of the filling rate from theta_entry to theta
+        '''
+        # calculate the filling rate at each theta
+        filling_rate = self.find_filling_rate(theta, RPM)
+
+        # calculate the volume of water in the bucket at each theta
+        vol = np.trapz(filling_rate, theta)
+
+        return vol
+
+
+    print(find_vol(0.3, 14))
+
+
+
     def find_torque(self, RPM):
         '''
         From the CAD model, the mass of the water in the bucket, COM and therefore the torque has been calculated
