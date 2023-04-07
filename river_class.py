@@ -35,10 +35,11 @@ the head does not impact the calculations and can be left empty unless defined o
 
 class river_obj():
     # constructor
-    def __init__(self, width, depth, velocity ):
+    def __init__(self, width, depth, velocity, head=0 ):
         self.width = width
         self.depth = depth
         self.velocity = velocity
+        self.head = head
 
 
         self.vol_flow_rate = width * depth * velocity # m^3/s
@@ -53,12 +54,23 @@ class river_obj():
         self.v_nappe = self.vol_flow_rate/(self.width * self.nappe_height)
 
         # calculate river at bed and nappe parametrically for time after waterfall
-        time = 40
+        time = 5
 
         # define time - arbitrary 1000
         t = np.linspace(0, time, 1000) 
         # define x and y coordinates (after waterfall)
         self.x_bed = self.velocity * t
-        self.y_bed = np.zeros(len(t)) - 0.5 * self.g * t**2
+        self.y_bed = np.zeros(len(t))  + self.head  - 0.5 * self.g * t**2
         self.x_nappe = self.v_nappe * t
-        self.y_nappe = self.nappe_height * np.ones(len(t)) - 0.5 * self.g * t**2
+        self.y_nappe = self.nappe_height * np.ones(len(t)) + self.head - 0.5 * self.g * t**2
+
+
+if __name__ == "__main__":
+    # test the class
+    test = river_obj(1, 1, 1, head=2)
+
+    # plot the river
+    plt.plot(test.x_bed, test.y_bed, label='bed')
+    plt.plot(test.x_nappe, test.y_nappe, label='nappe')
+    plt.legend()
+    plt.show()

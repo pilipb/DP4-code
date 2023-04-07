@@ -3,8 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import math
 import scipy.optimize as opt
-import scipy.integrate
-import warnings
+import pandas as pd
 
 class breastTurbine():
     '''
@@ -54,9 +53,12 @@ class breastTurbine():
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
+        self.river = river
         self.x_centre = x_centre 
         self.y_centre = y_centre 
-        self.river = river
+
+        self.blade_sep = 2*np.pi/self.num_blades
+        
 
         self.theta = np.linspace(0, 2*np.pi, 100)
         self.x = self.radius * np.cos(self.theta) + self.x_centre
@@ -109,7 +111,6 @@ class breastTurbine():
             return 1
         
         # calculate the theta range
-        self.theta = np.linspace(theta_entry, theta_exit, 100)
         self.theta_entry = theta_entry
         self.theta_exit = theta_exit
         self.theta_range = theta_exit - theta_entry
@@ -120,25 +121,35 @@ class breastTurbine():
         '''
         calculate the filling rate of the bucket at each theta and emptying rate
         '''
-        filling_rate = []
+        filling_rate = np.zeros(len(self.theta))
 
         # calculate the angular velocity of the turbine in radians per second
         self.omega = 2 * np.pi * RPM / 60
 
         for i, theta in enumerate(self.theta):
-            # calculate the falling velocity of the water and blade
-            blade_v = self.omega * self.radius * np.sin(theta)
-            fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
-
-            # calculate the filling rate in m^3/s at each theta
-            fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
+            if theta > self.theta_entry and theta < self.theta_exit:
             
-            # remove nan values
-            if np.isnan(fill):
-                fill = 0
-            elif fill < 0:
-                fill = 0
-            filling_rate.append(fill)
+                # calculate the falling velocity of the water and blade
+                blade_v = self.omega * self.radius * np.sin(theta)
+
+                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
+
+                # calculate the filling rate in m^3/s at each theta
+                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
+
+                # remove nan values
+                if np.isnan(fill):
+                    fill = 0
+                elif fill < 0:
+                    fill = 0
+                filling_rate[i] = fill
+
+            else:
+
+                filling_rate[i]=0
+                continue
+                
+
 
         self.filling_rate = filling_rate
         
@@ -150,31 +161,26 @@ class breastTurbine():
         
         the filling rate is m^3/s but volume is in terms of theta so the integral is multiplied by dt/dtheta
         '''
-        theta_range = self.theta_exit - self.theta_entry
+        # # calculate dt/dtheta
+        # dtheta = self.theta[1] - self.theta[0]
+        # dt = dtheta / self.omega
+        # dtdtheta = dt / dtheta
 
-        # calculate dt/dtheta
-        dtheta = theta_range / len(self.theta)
-        dt = (theta_range/ self.omega ) / len(self.theta)
 
-
-        dtdtheta = dt / dtheta
-
-        # multiply the filling rate by dt/dtheta to get the volume at each theta
-        # calculate the volume at each theta
-        for i, val in enumerate(self.filling_rate):
-            self.filling_rate[i] = val * dtdtheta
-
-        vol = np.cumsum(self.filling_rate)
+        vol = np.cumsum(self.filling_rate )#* dtdtheta)
         max_vol_ach = max(vol)
+        empty_angle = np.pi/2
 
         # limit the volume to the maximum volume of the turbine
         for i, val in enumerate(vol):
             if val > self.max_vol:
                 val = self.max_vol
 
-            # make it so the bucket begins to empty when the turbine is at 90 degrees
-            elif self.theta[i] > np.pi /2:
-                val =  max_vol_ach*np.cos((self.theta[i] - np.pi/2)* 2)
+            # make it so the bucket begins to empty when the turbine is at 90 degrees - need to find exact angle
+            # the turbine empties at an accelerating rate
+            
+            elif self.theta[i] > empty_angle:
+                val =  max_vol_ach*(1 - (self.theta[i] - empty_angle)**2)
                 if val < 0:
                     val = 0
 
@@ -195,9 +201,12 @@ class breastTurbine():
         e = 3.19372668997763
 
         # calculate the centre of mass at each theta
-        centre_mass = []
+        centre_mass = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            centre_mass.append(a*(theta**4) + b*(theta**3) + c*(theta**2) + d*theta + e)
+            if theta > self.theta_entry and theta < self.theta_exit:
+                centre_mass[i] = (a*(theta**4) + b*(theta**3) + c*(theta**2) + d*theta + e)
+            else:
+                centre_mass[i] = 0
 
         self.centre_mass = centre_mass
         return 0
@@ -206,9 +215,10 @@ class breastTurbine():
         '''
         calculate the potential power at each theta
         '''
-        pot_power = []
+        # potential power is the product of the volume of water, the centre of mass, the angular velocity and the density of water
+        pot_power = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            pot_power.append(self.g * self.vol[i] * self.centre_mass[i]  * self.omega * self.river.rho)
+            pot_power[i] = (self.g * self.vol[i] * self.centre_mass[i]  * self.omega * self.river.rho)
 
         self.pot_power = pot_power
         return 0
@@ -217,12 +227,25 @@ class breastTurbine():
         '''
         calculate the impulse power at each theta
         '''
-        imp_power = []
+        imp_power = np.zeros(len(self.theta))
+
+        # impulse power is the product of the radius, the density of water, the angular velocity and the difference between the filling rate and the volume flow rate
         for i, theta in enumerate(self.theta):
-            imp = self.omega * self.river.rho * self.radius *abs(self.river.vol_flow_rate - self.filling_rate[i])
-            if imp < 0:
-                imp = 0
-            imp_power.append(imp) 
+            if theta < self.theta_entry or theta > self.theta_exit:
+                imp_power[i] = 0
+                continue
+
+            # if the angle after entry is greater than the separation angle then a blocking factor is applied
+
+            # the blocking factor decreases linearly from 1 to 0 as the angle increases from the entry angle to separation angle
+            if theta > self.theta_entry and theta < self.theta_entry + self.blade_sep:
+                block_factor = 1 - (theta - self.theta_entry) / self.blade_sep
+            else:
+                block_factor = 0
+            
+            imp = self.omega * self.river.rho * self.radius * (self.river.vol_flow_rate - (self.width * self.radius**2 * np.sin(theta) * self.omega * np.sin(theta))) * block_factor
+
+            imp_power[i] = imp
 
         self.imp_power = imp_power
         return 0
@@ -231,9 +254,9 @@ class breastTurbine():
         '''
         calculate the total power at each theta
         '''
-        tot_power = []
+        tot_power = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            tot_power.append(self.pot_power[i] + self.imp_power[i])
+            tot_power[i] = (self.pot_power[i] + self.imp_power[i])
 
         self.tot_power = tot_power
         return 0
@@ -243,19 +266,26 @@ class breastTurbine():
         calculate the average power output of the turbine for the number of blades over one revoulution
 
         '''
-        full_theta = np.linspace(0, 2*np.pi, 100 * self.num_blades)
-        full_power = np.zeros(len(full_theta))
-        separation_idx = 100
+        # calculate the power output over one revolution for all the blades as a function of theta
 
+        # calculate the separation angle between the blades
+        blade_sep_idx = 100 / self.num_blades
+
+        # compounding the power output of each blade with offset blade_sep_idx
+        power = np.zeros(len(self.theta))
         for i in range(self.num_blades):
-            for j, theta in enumerate(self.theta):
-                full_power[j + separation_idx*i] += self.tot_power[j]
-  
-        self.full_power = full_power
-        self.full_theta = full_theta
+            power += np.roll(self.tot_power, int(i*blade_sep_idx))
 
-        self.avg_power = np.sum(full_power) / len(full_power)
+        # average the power over one revolution
+        avg_power = np.mean(power)
+
+        self.avg_power = avg_power
+        self.full_power = power
+
         return 0
+
+        
+
 
 
     
@@ -339,9 +369,8 @@ if __name__ == "__main__":
     turbine.find_avg_power()
 
     # make dataframe with results:
-    import pandas as pd
-    df = pd.DataFrame({'theta': turbine.theta, 'filling rate': turbine.filling_rate,'COM': turbine.centre_mass, 'volume': turbine.vol ,'pot_power': turbine.pot_power, 'imp_power': turbine.imp_power, 'tot_power': turbine.tot_power})
-    print(df.head(20))
+    # df = pd.DataFrame({'theta': turbine.theta, 'filling rate': turbine.filling_rate,'COM': turbine.centre_mass, 'volume': turbine.vol ,'pot_power': turbine.pot_power, 'imp_power': turbine.imp_power, 'tot_power': turbine.tot_power})
+    # print(df.head(20))
 
     # plot the filling rate and volume
     plt.figure()
@@ -354,8 +383,8 @@ if __name__ == "__main__":
 
     # plot the power due to all blades and avg power
     plt.figure()
-    plt.plot(turbine.full_theta, turbine.full_power, label='Full Power')
-    plt.plot(turbine.full_theta, np.ones(len(turbine.full_theta)) * turbine.avg_power, label='Average Power')
+    plt.plot(turbine.theta, turbine.full_power, label='Full Power')
+    plt.plot(turbine.theta, np.ones(len(turbine.theta)) * turbine.avg_power, label='Average Power')
     plt.xlabel('Theta (rad)')
     plt.ylabel('Power (W)')
     plt.legend()
