@@ -109,7 +109,6 @@ class breastTurbine():
             return 1
         
         # calculate the theta range
-        self.theta = np.linspace(theta_entry, theta_exit, 100)
         self.theta_entry = theta_entry
         self.theta_exit = theta_exit
         self.theta_range = theta_exit - theta_entry
@@ -127,10 +126,10 @@ class breastTurbine():
 
         for i, theta in enumerate(self.theta):
 
-            if theta >= self.theta_entry or theta <= self.theta_exit:
+            if theta >= self.theta_entry and theta <= self.theta_exit:
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
-                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
+                fall_v = np.sqrt(2 * self.g * (self.y_centre + river.head + self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta
                 fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
@@ -174,10 +173,12 @@ class breastTurbine():
         
         # limit the volume to the maximum volume of the bucket and make it so volume decreases after theta_exit
         for i, val in enumerate(vol):
-            if val > self.max_vol:
+            if val >= self.max_vol and self.theta[i] < np.pi/2:
                 vol[i] = self.max_vol
-            if self.theta[i] > self.theta_exit:
-                vol[i] = self.max_vol - (self.theta[i] - self.theta_exit) * self.max_vol / theta_range
+            elif self.theta[i] >= np.pi/2:
+                vol[i] = vol[i-1] * 0.75
+                
+
 
         self.vol = vol
         return 0
@@ -219,11 +220,15 @@ class breastTurbine():
         imp_power = []
         for i, theta in enumerate(self.theta):
 
-            # calculate the impulse power at each theta
-            imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] - (self.omega * self.radius**2 * np.sin(theta) * self.width))
-            if imp < 0:
-                imp = 0
-            imp_power.append(imp) 
+            if theta >= self.theta_entry and theta <= self.theta_exit:
+                # calculate the impulse power at each theta
+                imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] - (self.omega * self.radius**2 * np.sin(theta) * self.width))
+                if imp < 0:
+                    imp = 0
+                imp_power.append(imp) 
+
+            else:
+                imp_power.append(0)
 
         self.imp_power = imp_power
         return 0
@@ -320,7 +325,7 @@ if __name__ == "__main__":
     from river_class import river_obj
 
     # define the river
-    river = river_obj(width = 0.77, depth = 0.3, velocity = 4)
+    river = river_obj(width = 0.77, depth = 0.3, velocity = 4, head=2)
 
     # define the turbine
     turbine = breastTurbine(river, x_centre=0.8, y_centre=-0.1)
@@ -375,7 +380,7 @@ if __name__ == "__main__":
 
 
     # plot the average power against RPM
-    RPMs = np.linspace(0, 40, 50)
+    RPMs = np.linspace(0.1, 40, 50)
     avg_power = []
     for RPM in RPMs:
         turbine.find_intersects()

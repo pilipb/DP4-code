@@ -35,10 +35,11 @@ the head does not impact the calculations and can be left empty unless defined o
 
 class river_obj():
     # constructor
-    def __init__(self, width, depth, velocity ):
+    def __init__(self, width, depth, velocity, head = 0 ):
         self.width = width
         self.depth = depth
         self.velocity = velocity
+        self.head = head
 
 
         self.vol_flow_rate = width * depth * velocity # m^3/s
