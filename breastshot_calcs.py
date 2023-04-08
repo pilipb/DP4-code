@@ -63,7 +63,7 @@ class breastTurbine():
         self.y = self.radius * np.sin(self.theta) + self.y_centre
 
         self.g = 9.81
-        self.max_vol = 16
+        self.max_vol = 0.1
 
     def find_intersects(self):
         # find the intersection of the turbine and the river
@@ -126,19 +126,25 @@ class breastTurbine():
         self.omega = 2 * np.pi * RPM / 60
 
         for i, theta in enumerate(self.theta):
-            # calculate the falling velocity of the water and blade
-            blade_v = self.omega * self.radius * np.sin(theta)
-            fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
 
-            # calculate the filling rate in m^3/s at each theta
-            fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
-            
-            # remove nan values
-            if np.isnan(fill):
-                fill = 0
-            elif fill < 0:
-                fill = 0
-            filling_rate.append(fill)
+            if theta >= self.theta_entry or theta <= self.theta_exit:
+                # calculate the falling velocity of the water and blade
+                blade_v = self.omega * self.radius * np.sin(theta)
+                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
+
+                # calculate the filling rate in m^3/s at each theta
+                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
+                
+                # remove nan values
+                if np.isnan(fill):
+                    fill = 0
+                elif fill < 0:
+                    fill = 0
+
+
+                filling_rate.append(fill)
+            else:
+                filling_rate.append(0)
 
         self.filling_rate = filling_rate
         
@@ -165,21 +171,14 @@ class breastTurbine():
             self.filling_rate[i] = val * dtdtheta
 
         vol = np.cumsum(self.filling_rate)
-        max_vol_ach = max(vol)
-
-        # limit the volume to the maximum volume of the turbine
+        
+        # limit the volume to the maximum volume of the bucket and make it so volume empties after theta_exit
         for i, val in enumerate(vol):
             if val > self.max_vol:
-                val = self.max_vol
+                vol[i] = self.max_vol
+            if self.theta[i] > self.theta_exit:
+                vol[i] = 0    
 
-            # make it so the bucket begins to empty when the turbine is at 90 degrees
-            elif self.theta[i] > np.pi /2:
-                val =  max_vol_ach*np.cos((self.theta[i] - np.pi/2)* 2)
-                if val < 0:
-                    val = 0
-
-            vol[i] = val
-            
         self.vol = vol
         return 0
 
@@ -219,7 +218,9 @@ class breastTurbine():
         '''
         imp_power = []
         for i, theta in enumerate(self.theta):
-            imp = self.omega * self.river.rho * self.radius *abs(self.river.vol_flow_rate - self.filling_rate[i])
+
+            # calculate the impulse power at each theta
+            imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] - (self.omega * self.radius**2 * np.sin(theta) * self.width))
             if imp < 0:
                 imp = 0
             imp_power.append(imp) 
