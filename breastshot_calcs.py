@@ -133,13 +133,12 @@ class breastTurbine():
         filling_rate = []
 
 
-
         for i, theta in enumerate(self.theta):
 
             if theta >= self.theta_entry and theta <= self.theta_exit:
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
-                fall_v = np.sqrt(2 * self.g * (self.y_centre + river.head + self.radius * np.cos(theta)))
+                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.river.head + self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta
                 fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v) 
@@ -178,7 +177,7 @@ class breastTurbine():
             if val >= self.max_vol and self.theta[i] < np.pi/2:
                 vol[i] = self.max_vol
             elif self.theta[i] >= np.pi/2 and self.theta[i] <= self.theta_exit:
-                vol[i] = vol[i-1] * 0.8
+                vol[i] = vol[i-1] * 0.7
             else:
                 vol[i] = 0
                 
@@ -224,9 +223,13 @@ class breastTurbine():
         imp_power = []
         for i, theta in enumerate(self.theta):
 
+            # add a blocking factor (function of theta) to the impulse power - this is the fraction of the water that is blocked by the next blade
+            # block factor = 1 at theta entry and 0 at theta exit
+            block_factor = 1 - (theta - self.theta_entry) / self.theta_range
+
             if theta >= self.theta_entry and theta <= self.theta_exit:
                 # calculate the impulse power at each theta
-                imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] * self.dtdtheta - (self.omega * self.radius**2 * np.sin(theta) * self.width))
+                imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] * self.dtdtheta - (self.omega * self.radius**2 * np.sin(theta) * self.width)) * block_factor
                 if imp < 0:
                     imp = 0
                 imp_power.append(imp) 
@@ -328,7 +331,7 @@ if __name__ == "__main__":
     from river_class import river_obj
 
     # define the river
-    river = river_obj(width = 0.77, depth = 0.3, velocity = 4, head=1)
+    river = river_obj(width = 0.77, depth = 0.3, velocity = 2, head=1)
 
 
     # find the RPM
@@ -383,7 +386,7 @@ if __name__ == "__main__":
 
 
     # plot the average power against RPM
-    RPMs = np.linspace(0.1, 40, 50)
+    RPMs = np.linspace(2, 40, 50)
     avg_power = []
     for RPM in RPMs:
         turbine = breastTurbine(river, x_centre=0.8, y_centre=-0.1, RPM=RPM)
