@@ -57,13 +57,17 @@ class breastTurbine():
         self.x_centre = x_centre 
         self.y_centre = y_centre 
         self.river = river
+        self.RPM = RPM
 
         
 
         self.theta = np.linspace(0, 2*np.pi, 100)
+
         dtheta = self.theta[1] - self.theta[0]
         dt = (60/RPM ) / len(self.theta)
         self.dtdtheta = dt / dtheta
+
+        self.omega = 2 * np.pi * self.RPM / 60
 
 
         self.x = self.radius * np.cos(self.theta) + self.x_centre
@@ -122,14 +126,13 @@ class breastTurbine():
         return 0
 
     
-    def find_filling_rate(self, RPM):
+    def find_filling_rate(self):
         '''
         calculate the filling rate of the bucket at each theta and emptying rate
         '''
         filling_rate = []
 
-        # calculate the angular velocity of the turbine in radians per second
-        self.omega = 2 * np.pi * RPM / 60
+
 
         for i, theta in enumerate(self.theta):
 
@@ -139,7 +142,7 @@ class breastTurbine():
                 fall_v = np.sqrt(2 * self.g * (self.y_centre + river.head + self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta
-                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
+                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v) 
                 
                 # remove nan values
                 if np.isnan(fill):
@@ -162,9 +165,6 @@ class breastTurbine():
         
         the filling rate is m^3/s but volume is in terms of theta so the integral is multiplied by dt/dtheta
         '''
-        theta_range = self.theta_exit - self.theta_entry
-
-
 
         # multiply the filling rate by dt/dtheta to get the volume at each theta
         # calculate the volume at each theta
@@ -177,8 +177,10 @@ class breastTurbine():
         for i, val in enumerate(vol):
             if val >= self.max_vol and self.theta[i] < np.pi/2:
                 vol[i] = self.max_vol
-            elif self.theta[i] >= np.pi/2:
-                vol[i] = vol[i-1] * 0.5
+            elif self.theta[i] >= np.pi/2 and self.theta[i] <= self.theta_exit:
+                vol[i] = vol[i-1] * 0.8
+            else:
+                vol[i] = 0
                 
 
 
@@ -210,7 +212,7 @@ class breastTurbine():
         '''
         pot_power = []
         for i, theta in enumerate(self.theta):
-            pot_power.append(self.g * self.vol[i] * self.centre_mass[i]  * self.omega * self.river.rho)
+            pot_power.append(self.g * self.vol[i] * self.centre_mass[i] * self.omega * self.river.rho)
 
         self.pot_power = pot_power
         return 0
@@ -251,18 +253,17 @@ class breastTurbine():
         calculate the average power output of the turbine for the number of blades over one revoulution
 
         '''
-        full_theta = np.linspace(0, 2*np.pi, 100 * self.num_blades)
-        full_power = np.zeros(len(full_theta))
-        separation_idx = 100
-
+        # compound the power over one revolution
+        full_power = np.zeros(len(self.theta))
         for i in range(self.num_blades):
-            for j, theta in enumerate(self.theta):
-                full_power[j + separation_idx*i] += self.tot_power[j]
-  
-        self.full_power = full_power
-        self.full_theta = full_theta
+            idx_offset = int(i * len(self.theta) / self.num_blades)
+            full_power += np.roll(self.tot_power, idx_offset)
 
-        self.avg_power = np.sum(full_power) / len(full_power)
+        self.full_power = full_power
+
+        # calculate the average power
+        self.avg_power = np.mean(full_power)
+
         return 0
 
 
@@ -338,7 +339,7 @@ if __name__ == "__main__":
     # find intersection points
     turbine.find_intersects()
     turbine.find_theta_range()
-    turbine.find_filling_rate(RPM)
+    turbine.find_filling_rate()
     turbine.find_vol()
     turbine.find_centre_mass()
     turbine.find_pot_power()
@@ -362,8 +363,8 @@ if __name__ == "__main__":
 
     # plot the power due to all blades and avg power
     plt.figure()
-    plt.plot(turbine.full_theta, turbine.full_power, label='Full Power')
-    plt.plot(turbine.full_theta, np.ones(len(turbine.full_theta)) * turbine.avg_power, label='Average Power')
+    plt.plot(turbine.theta, turbine.full_power, label='Full Power')
+    plt.plot(turbine.theta, np.ones(len(turbine.theta)) * turbine.avg_power, label='Average Power')
     plt.xlabel('Theta (rad)')
     plt.ylabel('Power (W)')
     plt.legend()
@@ -385,9 +386,10 @@ if __name__ == "__main__":
     RPMs = np.linspace(0.1, 40, 50)
     avg_power = []
     for RPM in RPMs:
+        turbine = breastTurbine(river, x_centre=0.8, y_centre=-0.1, RPM=RPM)
         turbine.find_intersects()
         turbine.find_theta_range()
-        turbine.find_filling_rate(RPM)
+        turbine.find_filling_rate()
         turbine.find_vol()
         turbine.find_centre_mass()
         turbine.find_pot_power()
