@@ -66,9 +66,14 @@ class breastTurbine():
         self.y = self.radius * np.sin(self.theta) + self.y_centre
 
         self.g = 9.81
-        self.max_vol = 0.16 # m^3
+        self.max_vol = 0.032 # m^3
 
         omega = 2 * np.pi * RPM / 60
+
+        # calculate dt/dtheta
+        dtheta = self.theta[1] - self.theta[0]
+        dt = (60/RPM) / len(self.theta)
+        self.dtdtheta = dt / dtheta
 
         dtheta = self.theta[1] - self.theta[0]
         dt = dtheta / omega
@@ -140,7 +145,7 @@ class breastTurbine():
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
 
-                fall_v = np.sqrt(2 * self.g * (self.y_centre + river.head + self.radius * np.cos(theta)))
+                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.river.head + self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta
                 fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
@@ -159,7 +164,7 @@ class breastTurbine():
                 
 
 
-        self.filling_rate = filling_rate
+        self.filling_rate = filling_rate * self.dtdtheta # multiply by dt/dtheta to get the filling rate in m^3/s
         
         return 0
 
@@ -170,7 +175,7 @@ class breastTurbine():
         the filling rate is m^3/s but volume is in terms of theta so the integral is multiplied by dt/dtheta
         '''
 
-        vol = np.cumsum(self.filling_rate * self.dtdtheta)
+        vol = np.cumsum(self.filling_rate)
         max_vol_ach = max(vol)
         empty_angle = np.pi/2
 
@@ -248,7 +253,7 @@ class breastTurbine():
                 block_factor = 1
 
             # calculate the falling velocity of the water 
-            fall_river_flow = np.sqrt(2 * self.g * abs(self.y_centre  + self.radius * np.cos(theta))) * river.depth * river.width
+            fall_river_flow = np.sqrt(2 * self.g * (self.river.head + abs(self.y_centre  + self.radius * np.cos(theta)))) * self.width * self.radius * np.sin(theta - self.theta_entry)
             
             imp = self.omega * self.river.rho * self.radius * (fall_river_flow - self.filling_rate[i]) * block_factor
 
