@@ -60,9 +60,9 @@ class river_obj():
         t = np.linspace(0, time, 1000) 
         # define x and y coordinates (after waterfall)
         self.x_bed = self.velocity * t
-        self.y_bed = np.zeros(len(t))  + self.head  - 0.5 * self.g * t**2
+        self.y_bed = np.zeros(len(t))  - 0.5 * self.g * t**2
         self.x_nappe = self.v_nappe * t
-        self.y_nappe = self.nappe_height * np.ones(len(t)) + self.head - 0.5 * self.g * t**2
+        self.y_nappe = self.nappe_height * np.ones(len(t)) - 0.5 * self.g * t**2
 
 
 if __name__ == "__main__":

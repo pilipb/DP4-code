@@ -48,7 +48,7 @@ class breastTurbine():
 
     '''
 
-    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 5, x_centre = 0, y_centre = 0): 
+    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 5, x_centre = 0, y_centre = 0, RPM=15): 
 
         self.radius = radius
         self.width = width
@@ -56,6 +56,7 @@ class breastTurbine():
         self.river = river
         self.x_centre = x_centre 
         self.y_centre = y_centre 
+        self.RPM = RPM
 
         self.blade_sep = 2*np.pi/self.num_blades
         
@@ -65,7 +66,13 @@ class breastTurbine():
         self.y = self.radius * np.sin(self.theta) + self.y_centre
 
         self.g = 9.81
-        self.max_vol = 16
+        self.max_vol = 0.16 # m^3
+
+        omega = 2 * np.pi * RPM / 60
+
+        dtheta = self.theta[1] - self.theta[0]
+        dt = dtheta / omega
+        self.dtdtheta = dt / dtheta
 
     def find_intersects(self):
         # find the intersection of the turbine and the river
@@ -117,22 +124,23 @@ class breastTurbine():
         return 0
 
     
-    def find_filling_rate(self, RPM):
+    def find_filling_rate(self):
         '''
         calculate the filling rate of the bucket at each theta and emptying rate
         '''
         filling_rate = np.zeros(len(self.theta))
+        RPM = self.RPM
 
         # calculate the angular velocity of the turbine in radians per second
         self.omega = 2 * np.pi * RPM / 60
 
         for i, theta in enumerate(self.theta):
-            if theta > self.theta_entry and theta < self.theta_exit:
+            if theta >= self.theta_entry and theta <= self.theta_exit:
             
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
 
-                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.radius * np.cos(theta)))
+                fall_v = np.sqrt(2 * self.g * (self.y_centre + river.head + self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta
                 fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
@@ -161,13 +169,8 @@ class breastTurbine():
         
         the filling rate is m^3/s but volume is in terms of theta so the integral is multiplied by dt/dtheta
         '''
-        # # calculate dt/dtheta
-        # dtheta = self.theta[1] - self.theta[0]
-        # dt = dtheta / self.omega
-        # dtdtheta = dt / dtheta
 
-
-        vol = np.cumsum(self.filling_rate )#* dtdtheta)
+        vol = np.cumsum(self.filling_rate * self.dtdtheta)
         max_vol_ach = max(vol)
         empty_angle = np.pi/2
 
@@ -175,12 +178,12 @@ class breastTurbine():
         for i, val in enumerate(vol):
             if val > self.max_vol:
                 val = self.max_vol
+                max_vol_ach = val
 
             # make it so the bucket begins to empty when the turbine is at 90 degrees - need to find exact angle
-            # the turbine empties at an accelerating rate
             
-            elif self.theta[i] > empty_angle:
-                val =  max_vol_ach*(1 - (self.theta[i] - empty_angle)**2)
+            if self.theta[i] > empty_angle:
+                val =  max_vol_ach*(1 - (self.theta[i] - empty_angle))
                 if val < 0:
                     val = 0
 
@@ -203,7 +206,7 @@ class breastTurbine():
         # calculate the centre of mass at each theta
         centre_mass = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            if theta > self.theta_entry and theta < self.theta_exit:
+            if theta >= self.theta_entry and theta <= self.theta_exit:
                 centre_mass[i] = (a*(theta**4) + b*(theta**3) + c*(theta**2) + d*theta + e)
             else:
                 centre_mass[i] = 0
@@ -218,7 +221,7 @@ class breastTurbine():
         # potential power is the product of the volume of water, the centre of mass, the angular velocity and the density of water
         pot_power = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            pot_power[i] = (self.g * self.vol[i] * self.centre_mass[i]  * self.omega * self.river.rho)
+            pot_power[i] = (self.g * self.vol[i] * self.centre_mass[i] * self.river.rho * self.omega)
 
         self.pot_power = pot_power
         return 0
@@ -236,14 +239,21 @@ class breastTurbine():
                 continue
 
             # if the angle after entry is greater than the separation angle then a blocking factor is applied
-
-            # the blocking factor decreases linearly from 1 to 0 as the angle increases from the entry angle to separation angle
-            if theta > self.theta_entry and theta < self.theta_entry + self.blade_sep:
-                block_factor = 1 - (theta - self.theta_entry) / self.blade_sep
-            else:
+            # the blocking factor decreases linearly from 1 to 0 as the angle increases from the entry angle + blade_sep to entry angle + 2*blade_sep
+            if theta >= self.theta_entry + self.blade_sep:
+                block_factor = 1 - (theta - (self.theta_entry + self.blade_sep)) / self.blade_sep
+            elif theta >= self.theta_entry + 2*self.blade_sep:
                 block_factor = 0
+            else:
+                block_factor = 1
+
+            # calculate the falling velocity of the water 
+            fall_river_flow = np.sqrt(2 * self.g * abs(self.y_centre  + self.radius * np.cos(theta))) * river.depth * river.width
             
-            imp = self.omega * self.river.rho * self.radius * (self.river.vol_flow_rate - (self.width * self.radius**2 * np.sin(theta) * self.omega * np.sin(theta))) * block_factor
+            imp = self.omega * self.river.rho * self.radius * (fall_river_flow - self.filling_rate[i]) * block_factor
+
+            if imp < 0:
+                imp = 0
 
             imp_power[i] = imp
 
@@ -256,7 +266,7 @@ class breastTurbine():
         '''
         tot_power = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            tot_power[i] = (self.pot_power[i] + self.imp_power[i])
+            tot_power[i] = self.pot_power[i] + self.imp_power[i]
 
         self.tot_power = tot_power
         return 0
@@ -277,100 +287,117 @@ class breastTurbine():
             power += np.roll(self.tot_power, int(i*blade_sep_idx))
 
         # average the power over one revolution
-        avg_power = np.mean(power)
+        avg_power = np.sum(power) / len(power)
 
         self.avg_power = avg_power
         self.full_power = power
 
         return 0
+    
+    def analysis(self, x, y, RPM):
+        '''
+        run the analysis for the turbine
+        '''
+        # initialise the turbine
+        self.x_centre = x
+        self.y_centre = y
+        self.RPM = RPM
+
+        # run the analysis
+        turbine.find_intersects()
+        if turbine.find_theta_range():
+            print('error: turbine not in river')
+            return 0
+        if turbine.find_filling_rate():
+            return 0
+        turbine.find_vol()
+        turbine.find_centre_mass()
+        turbine.find_pot_power()
+        turbine.find_imp_power()
+        turbine.find_tot_power()
+        turbine.find_avg_power()
+
+        return self.avg_power
 
         
+    def optimise(self, guess):
+        '''
+        Optimise the turbine position to maximise the average power output
+        '''
 
-
-
-    
-    # def optimise(self, RPM =0):
-    #     '''
-    #     Optimise the turbine position to maximise the average power output
-    #     '''
-    #     warnings.filterwarnings("ignore")
-    #     if RPM == 0:
-    #         RPM = self.find_RPM()
-    #     # first define the function to be optimised
-    #     def fun(Y):
-    #         # unpack the variables
-    #         x, y = Y
-    #         # define the power
-    #         power = self.analysis(x , y  , RPM = RPM)
+        # first define the function to be optimised
+        def fun(Y):
+            # unpack the variables
+            x, y, RPM = Y
+            # define the power
+            power = self.analysis(x , y  , RPM)
             
-    #         return -power
+            return -power
         
-    #     # define the initial guess
-    #     x0 = [1,0]
+        # define the initial guess
+        x0 = guess
 
-    #     # run the optimisation
-    #     res = opt.fmin(fun, x0 )
+        # run the optimisation
+        res = opt.minimize(fun, x0, bounds=((0, 100), (-river.head+self.radius, 100), (0, 40)), method='nelder-mead')
 
-    #     # print the results
-    #     newx, newy = res
+        # print the results
+        if not res.success:
+            raise ValueError(res.message)
+        newx, newy, RPM = res.x
 
-    #     # average power at the new position
-    #     power = self.analysis(newx, newy, RPM = RPM)
+        # average power at the new position
+        power = self.analysis(newx, newy, RPM)
 
-    #     print('The optimised average power output of the turbine is: %.2f W' % power)
+        print('The optimised average power output of the turbine is: %.2f W' % power)
 
-    #     # hide warnings
-
-        
-
-    #     # return the optimal power
-    #     return power, newx, newy
+        # return the optimal power
+        return power, newx, newy, RPM
     
-
-    # def plot_turbine(self):
-    #     '''
-    #     Plot the turbine
-    #     '''
-    #     # plot the turbine
-    #     plt.figure()
-    #     plt.plot(self.x_centre, self.y_centre, color='r', marker='o')
-    #     plt.plot(self.x, self.y, color='r')
-    #     plt.plot(self.river.x_nappe, self.river.y_nappe, color='b')
-    #     plt.plot(self.river.x_bed, self.river.y_bed, color='b')
-    #     plt.xlim(0,2)
-    #     plt.ylim(-1,1)
-    #     plt.show()
-
-    #     print('The turbine centre is positioned at: (%.2f, %.2f)' %(self.x_centre, self.y_centre))
-
+    def plot_turbine(self):
+        '''
+        Plot the turbine
+        '''
+        # plot the turbine
+        plt.figure()
+        plt.plot(self.x_centre, self.y_centre, color='r', marker='o')
+        plt.plot(self.x, self.y, color='r')
+        plt.plot(self.river.x_nappe, self.river.y_nappe, color='b')
+        plt.plot(self.river.x_bed, self.river.y_bed, color='b')
+        plt.xlim(0,2)
+        plt.ylim(-1,1)
+        plt.show()
 
 
 if __name__ == "__main__":
     from river_class import river_obj
 
     # define the river
-    river = river_obj(width = 0.77, depth = 0.3, velocity = 4)
+    river = river_obj(width = 0.77, depth = 0.3, velocity = 1.5, head=2)
 
     # define the turbine
-    turbine = breastTurbine(river, x_centre=0.8, y_centre=-0.1)
-
-    # find the RPM
-    RPM = 20
+    turbine = breastTurbine(river)
 
     # find intersection points
-    turbine.find_intersects()
-    turbine.find_theta_range()
-    turbine.find_filling_rate(RPM)
-    turbine.find_vol()
-    turbine.find_centre_mass()
-    turbine.find_pot_power()
-    turbine.find_imp_power()
-    turbine.find_tot_power()
-    turbine.find_avg_power()
+    # if not turbine.analysis(0.2, 0, RPM):
+    #     print('The turbine is not in the river')
+    #     exit()
 
-    # make dataframe with results:
-    # df = pd.DataFrame({'theta': turbine.theta, 'filling rate': turbine.filling_rate,'COM': turbine.centre_mass, 'volume': turbine.vol ,'pot_power': turbine.pot_power, 'imp_power': turbine.imp_power, 'tot_power': turbine.tot_power})
-    # print(df.head(20))
+    # initial guess for position and RPM
+    x,y,RPM = [1, -0.1, 20]
+
+    # optimise the turbine position
+    # opt_pow, x, y, RPM = turbine.optimise(guess)
+
+    print('\nOptimised turbine position: (%.2f, %.2f)' %(x, y))
+    print('\nOptimised RPM: %.2f' %RPM)
+
+    # re-initialise the turbine
+    print('\nRe-running the analysis for the optimised turbine position (x, y, RPM): (%.2f, %.2f, %.2f)' %(x, y, RPM))
+    turbine = breastTurbine(river, x_centre=x, y_centre=y, RPM=RPM)
+    turbine.analysis(x, y, RPM)
+
+    # plot the turbine
+    turbine.plot_turbine()
 
     # plot the filling rate and volume
     plt.figure()
@@ -404,21 +431,17 @@ if __name__ == "__main__":
 
     # plot the average power against RPM
     RPMs = np.linspace(0, 40, 50)
-    avg_power = []
+    avg_power_RPM = []
+
+    x = 0.8
+    y = -0.1
+
     for RPM in RPMs:
-        turbine.find_intersects()
-        turbine.find_theta_range()
-        turbine.find_filling_rate(RPM)
-        turbine.find_vol()
-        turbine.find_centre_mass()
-        turbine.find_pot_power()
-        turbine.find_imp_power()
-        turbine.find_tot_power()
-        turbine.find_avg_power()
-        avg_power.append(turbine.avg_power)
+        turbine.analysis(x, y, RPM)
+        avg_power_RPM.append(turbine.avg_power)
 
     plt.figure()
-    plt.plot(RPMs, avg_power)
+    plt.plot(RPMs, avg_power_RPM)
     plt.xlabel('RPM')
     plt.ylabel('Average Power (W)')
     plt.show()
