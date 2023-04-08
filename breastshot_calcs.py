@@ -172,12 +172,12 @@ class breastTurbine():
 
         vol = np.cumsum(self.filling_rate)
         
-        # limit the volume to the maximum volume of the bucket and make it so volume empties after theta_exit
+        # limit the volume to the maximum volume of the bucket and make it so volume decreases after theta_exit
         for i, val in enumerate(vol):
             if val > self.max_vol:
                 vol[i] = self.max_vol
             if self.theta[i] > self.theta_exit:
-                vol[i] = 0    
+                vol[i] = self.max_vol - (self.theta[i] - self.theta_exit) * self.max_vol / theta_range
 
         self.vol = vol
         return 0
