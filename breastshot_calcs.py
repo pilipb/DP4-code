@@ -309,18 +309,18 @@ class breastTurbine():
         self.RPM = RPM
 
         # run the analysis
-        turbine.find_intersects()
-        if turbine.find_theta_range():
+        self.find_intersects()
+        if self.find_theta_range():
             print('error: turbine not in river')
             return 0
-        if turbine.find_filling_rate():
+        if self.find_filling_rate():
             return 0
-        turbine.find_vol()
-        turbine.find_centre_mass()
-        turbine.find_pot_power()
-        turbine.find_imp_power()
-        turbine.find_tot_power()
-        turbine.find_avg_power()
+        self.find_vol()
+        self.find_centre_mass()
+        self.find_pot_power()
+        self.find_imp_power()
+        self.find_tot_power()
+        self.find_avg_power()
 
         return self.avg_power
 
@@ -343,7 +343,7 @@ class breastTurbine():
         x0 = guess
 
         # run the optimisation
-        res = opt.minimize(fun, x0, bounds=((0, 100), (-river.head+self.radius, 100), (0, 40)), method='nelder-mead')
+        res = opt.minimize(fun, x0, bounds=((0, 100), (-self.river.head+self.radius, 100), (0, 40)), method='nelder-mead')
 
         # print the results
         if not res.success:
