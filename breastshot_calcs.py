@@ -49,7 +49,7 @@ class breastTurbine():
 
     '''
 
-    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 5, x_centre = 0, y_centre = 0): 
+    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 5, x_centre = 0, y_centre = 0, RPM = 15): 
 
         self.radius = radius
         self.width = width
@@ -58,12 +58,19 @@ class breastTurbine():
         self.y_centre = y_centre 
         self.river = river
 
+        
+
         self.theta = np.linspace(0, 2*np.pi, 100)
+        dtheta = self.theta[1] - self.theta[0]
+        dt = (60/RPM ) / len(self.theta)
+        self.dtdtheta = dt / dtheta
+
+
         self.x = self.radius * np.cos(self.theta) + self.x_centre
         self.y = self.radius * np.sin(self.theta) + self.y_centre
 
         self.g = 9.81
-        self.max_vol = 0.1
+        self.max_vol = 0.032
 
     def find_intersects(self):
         # find the intersection of the turbine and the river
@@ -157,17 +164,12 @@ class breastTurbine():
         '''
         theta_range = self.theta_exit - self.theta_entry
 
-        # calculate dt/dtheta
-        dtheta = theta_range / len(self.theta)
-        dt = (theta_range/ self.omega ) / len(self.theta)
 
-
-        dtdtheta = dt / dtheta
 
         # multiply the filling rate by dt/dtheta to get the volume at each theta
         # calculate the volume at each theta
         for i, val in enumerate(self.filling_rate):
-            self.filling_rate[i] = val * dtdtheta
+            self.filling_rate[i] = val * self.dtdtheta
 
         vol = np.cumsum(self.filling_rate)
         
@@ -176,7 +178,7 @@ class breastTurbine():
             if val >= self.max_vol and self.theta[i] < np.pi/2:
                 vol[i] = self.max_vol
             elif self.theta[i] >= np.pi/2:
-                vol[i] = vol[i-1] * 0.75
+                vol[i] = vol[i-1] * 0.5
                 
 
 
@@ -222,7 +224,7 @@ class breastTurbine():
 
             if theta >= self.theta_entry and theta <= self.theta_exit:
                 # calculate the impulse power at each theta
-                imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] - (self.omega * self.radius**2 * np.sin(theta) * self.width))
+                imp = self.omega * self.river.rho * self.radius *abs(self.filling_rate[i] * self.dtdtheta - (self.omega * self.radius**2 * np.sin(theta) * self.width))
                 if imp < 0:
                     imp = 0
                 imp_power.append(imp) 
@@ -325,13 +327,13 @@ if __name__ == "__main__":
     from river_class import river_obj
 
     # define the river
-    river = river_obj(width = 0.77, depth = 0.3, velocity = 4, head=2)
+    river = river_obj(width = 0.77, depth = 0.3, velocity = 4, head=1)
 
-    # define the turbine
-    turbine = breastTurbine(river, x_centre=0.8, y_centre=-0.1)
 
     # find the RPM
     RPM = 20
+    # define the turbine
+    turbine = breastTurbine(river, x_centre=0.8, y_centre=-0.1, RPM=RPM)
 
     # find intersection points
     turbine.find_intersects()
