@@ -164,7 +164,6 @@ class breastTurbine():
         
         the filling rate is m^3/s but volume is in terms of theta so the integral is multiplied by dt/dtheta
         '''
-
         # multiply the filling rate by dt/dtheta to get the volume at each theta
         # calculate the volume at each theta
         for i, val in enumerate(self.filling_rate):
@@ -268,6 +267,31 @@ class breastTurbine():
         self.avg_power = np.mean(full_power)
 
         return 0
+    
+    def full_calc(self, x, y, RPM, river):
+        '''
+        run all the calculations and return the average power
+        '''
+
+        # define the turbine
+        turbine = breastTurbine(river, x_centre=x, y_centre=y, RPM=RPM)
+
+        # find intersection points
+        
+        if turbine.find_intersects():
+            return 0
+        if turbine.find_theta_range():
+            return 0
+        turbine.find_filling_rate()
+        turbine.find_vol()
+        turbine.find_centre_mass()
+        turbine.find_pot_power()
+        turbine.find_imp_power()
+        turbine.find_tot_power()
+        turbine.find_avg_power()
+
+
+        return turbine.avg_power
 
 
     
