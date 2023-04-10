@@ -137,15 +137,15 @@ class breastTurbine():
         self.omega = 2 * np.pi * RPM / 60
 
         for i, theta in enumerate(self.theta):
-            if theta >= self.theta_entry and theta <= self.theta_exit:
+            if theta >= self.theta_entry and theta <= self.blade_sep + np.pi/2:
             
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
 
                 fall_v = np.sqrt(2 * self.g * (-self.y_centre + self.river.head - self.radius * np.cos(theta)))
 
-                # calculate the filling rate in m^3/s at each theta
-                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
+                # calculate the filling rate in m^3/s at each theta (the flow is split between current and next blade)
+                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v) #- (np.sin(theta - self.blade_sep)))
 
                 # remove nan values
                 if np.isnan(fill):
@@ -158,10 +158,12 @@ class breastTurbine():
 
                 filling_rate[i]=0
                 continue
-                
 
+        
+        # multiply by dtheta/dt to get the filling rate in m^3/s and remove the shared value
+        rate = (filling_rate * self.dthetadt)  
 
-        self.filling_rate = filling_rate * self.dthetadt # multiply by dt/dtheta to get the filling rate in m^3/s
+        self.filling_rate = rate
         
         return 0
 
