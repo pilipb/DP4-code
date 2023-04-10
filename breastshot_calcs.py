@@ -336,7 +336,7 @@ class breastTurbine():
         x0 = guess
 
         # run the optimisation
-        res = opt.minimize(fun, x0, bounds=((0, 100), (-self.river.head+self.radius, 100), (0, 40)), method='nelder-mead')
+        res = opt.minimize(fun, x0, bounds=((0, 100), (-self.river.head, 100), (0, 40)), method='nelder-mead')
 
         # print the results
         if not res.success:
@@ -381,10 +381,11 @@ if __name__ == "__main__":
     #     exit()
 
     # initial guess for position and RPM
-    x,y,RPM = [1, -0.1, 20]
+    x,y,RPM = [1, -0.1, 10]
+    guess = [x, y, RPM]
 
     # optimise the turbine position
-    # opt_pow, x, y, RPM = turbine.optimise(guess)
+    opt_pow, x, y, RPM = turbine.optimise(guess)
 
     print('\nOptimised turbine position: (%.2f, %.2f)' %(x, y))
     print('\nOptimised RPM: %.2f' %RPM)
@@ -427,24 +428,7 @@ if __name__ == "__main__":
     plt.show()
 
 
-    # plot the average power against RPM
-    RPMs = np.linspace(0, 40, 50)
-    avg_power_RPM = []
-
-    x = 0.8
-    y = -0.1
-
-    for RPM in RPMs:
-        turbine.analysis(x, y, RPM)
-        avg_power_RPM.append(turbine.avg_power)
-
-    plt.figure()
-    plt.plot(RPMs, avg_power_RPM)
-    plt.xlabel('RPM')
-    plt.ylabel('Average Power (W)')
-    plt.show()
-
-
+  
 
 
         
