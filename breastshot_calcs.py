@@ -48,7 +48,7 @@ class breastTurbine():
 
     '''
 
-    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 5, x_centre = 0, y_centre = 0, RPM=15): 
+    def __init__(self, river, radius = 0.504, width = 1.008, num_blades = 6, x_centre = 0, y_centre = 0, RPM=15): 
 
         self.radius = radius
         self.width = width
@@ -287,7 +287,7 @@ class breastTurbine():
         # average the power over one revolution
         avg_power = np.sum(power) / len(power)
 
-        self.avg_power = avg_power
+        self.avg_power = avg_power * self.num_blades 
         self.full_power = power
 
         return 0

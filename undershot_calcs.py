@@ -33,7 +33,7 @@ class underTurbine():
 
     '''
     # constructor
-    def __init__(self,  river, RPM = 15, radius = 0.504, barrel_radius=0.169,  width = 1.008, num_blades = 5,  y_centre = 0):
+    def __init__(self,  river, RPM = 15, radius = 0.504, barrel_radius=0.169,  width = 1.008, num_blades = 6,  y_centre = 0):
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
