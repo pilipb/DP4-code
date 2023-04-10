@@ -177,11 +177,9 @@ class underTurbine():
 
         return 0
     
-    def analysis(self,y_pos, RPM):
+    def analysis(self):
 
         # set the turbine parameters
-        self.__init__(river, RPM=RPM, y_centre=y_pos)
-
         self.find_drag_list()
         self.find_centre_mass()
         self.find_power()
