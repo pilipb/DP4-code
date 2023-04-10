@@ -70,14 +70,11 @@ class breastTurbine():
 
         omega = 2 * np.pi * RPM / 60
 
-        # calculate dt/dtheta
+        # calculate dtheta/dt
         dtheta = self.theta[1] - self.theta[0]
         dt = (60/RPM) / len(self.theta)
-        self.dtdtheta = dt / dtheta
+        self.dthetadt = dtheta / dt
 
-        dtheta = self.theta[1] - self.theta[0]
-        dt = dtheta / omega
-        self.dtdtheta = dt / dtheta
 
     def find_intersects(self):
         # find the intersection of the turbine and the river
@@ -164,7 +161,7 @@ class breastTurbine():
                 
 
 
-        self.filling_rate = filling_rate * self.dtdtheta # multiply by dt/dtheta to get the filling rate in m^3/s
+        self.filling_rate = filling_rate * self.dthetadt # multiply by dt/dtheta to get the filling rate in m^3/s
         
         return 0
 
@@ -271,7 +268,7 @@ class breastTurbine():
         '''
         tot_power = np.zeros(len(self.theta))
         for i, theta in enumerate(self.theta):
-            tot_power[i] = self.pot_power[i] + self.imp_power[i]
+            tot_power[i] =   self.imp_power[i] + self.pot_power[i]
 
         self.tot_power = tot_power
         return 0
