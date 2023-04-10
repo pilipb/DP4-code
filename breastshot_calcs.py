@@ -292,15 +292,10 @@ class breastTurbine():
 
         return 0
     
-    def analysis(self, x, y, RPM):
+    def analysis(self):
         '''
         run the analysis for the turbine
         '''
-        # initialise the turbine
-        self.x_centre = x
-        self.y_centre = y
-        self.RPM = RPM
-
         # run the analysis
         self.find_intersects()
         if self.find_theta_range():
