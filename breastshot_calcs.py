@@ -145,7 +145,7 @@ class breastTurbine():
                 fall_v = np.sqrt(2 * self.g * (-self.y_centre + self.river.head - self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta (the flow is split between current and next blade)
-                fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v) #- (np.sin(theta - self.blade_sep)))
+                fill = self.width * self.radius * (np.sin(theta) - np.sin(theta - self.blade_sep)) * (fall_v - blade_v) #)
 
                 # remove nan values
                 if np.isnan(fill):
