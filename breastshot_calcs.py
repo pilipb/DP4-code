@@ -240,20 +240,11 @@ class breastTurbine():
                 imp_power[i] = 0
                 continue
 
-            # if the angle after entry is greater than the separation angle then a blocking factor is applied
-            # the blocking factor decreases linearly from 1 to 0 as the angle increases from the entry angle + blade_sep to entry angle + 2*blade_sep
-            if theta >= self.theta_entry + self.blade_sep:
-                block_factor = 1 - (theta - (self.theta_entry + self.blade_sep)) / self.blade_sep
-            elif theta >= self.theta_entry + 2*self.blade_sep:
-                block_factor = 0
-            else:
-                block_factor = 1
-
             # calculate the falling velocity of the water - the fall distance is the head - (y_centre + radius * cos(theta))
             fall_river_flow = np.sqrt(2 * self.g * (self.river.head - (self.y_centre  + self.radius * np.cos(theta)))) * self.width * self.radius * np.sin(theta - self.theta_entry)
             
             # the impulse power is the product of the radius, the density of water, the angular velocity and the difference between the filling rate and the volume flow rate
-            imp = self.omega * self.river.rho * self.radius * (fall_river_flow - self.filling_rate[i]) * block_factor
+            imp = self.omega * self.river.rho * self.radius * (fall_river_flow - self.filling_rate[i])
 
             if imp < 0:
                 imp = 0
