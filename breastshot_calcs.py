@@ -142,7 +142,7 @@ class breastTurbine():
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
 
-                fall_v = np.sqrt(2 * self.g * (self.y_centre + self.river.head + self.radius * np.cos(theta)))
+                fall_v = np.sqrt(2 * self.g * (-self.y_centre + self.river.head - self.radius * np.cos(theta)))
 
                 # calculate the filling rate in m^3/s at each theta
                 fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v)
@@ -249,9 +249,10 @@ class breastTurbine():
             else:
                 block_factor = 1
 
-            # calculate the falling velocity of the water 
-            fall_river_flow = np.sqrt(2 * self.g * (self.river.head + abs(self.y_centre  + self.radius * np.cos(theta)))) * self.width * self.radius * np.sin(theta - self.theta_entry)
+            # calculate the falling velocity of the water - the fall distance is the head - (y_centre + radius * cos(theta))
+            fall_river_flow = np.sqrt(2 * self.g * (self.river.head - (self.y_centre  + self.radius * np.cos(theta)))) * self.width * self.radius * np.sin(theta - self.theta_entry)
             
+            # the impulse power is the product of the radius, the density of water, the angular velocity and the difference between the filling rate and the volume flow rate
             imp = self.omega * self.river.rho * self.radius * (fall_river_flow - self.filling_rate[i]) * block_factor
 
             if imp < 0:
@@ -267,6 +268,8 @@ class breastTurbine():
         calculate the total power at each theta
         '''
         tot_power = np.zeros(len(self.theta))
+
+        # total power is the sum of the potential and impulse power
         for i, theta in enumerate(self.theta):
             tot_power[i] =   self.imp_power[i] + self.pot_power[i]
 
