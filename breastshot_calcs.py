@@ -287,7 +287,7 @@ class breastTurbine():
         # average the power over one revolution
         avg_power = np.sum(power) / len(power)
 
-        self.avg_power = avg_power * self.num_blades 
+        self.avg_power = avg_power * self.num_blades  #- 0.2854295943166135 * 1000
         self.full_power = power
 
         return 0
