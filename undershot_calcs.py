@@ -48,6 +48,8 @@ class underTurbine():
         self.drag_coeff = 2.3 # from consultancy report
         self.blade_width = width # from CAD
 
+        self.blade_sep = 2 * np.pi / num_blades
+
         self.RPM = RPM
         self.omega = (RPM * 2 * math.pi) / 60 # convert RPM to rad/s
 
@@ -92,7 +94,8 @@ class underTurbine():
 
     def find_drag_force(self, depth, theta):
         v = self.flow_velocity(theta)
-        return self.river.rho * v**2 * self.drag_coeff * self.blade_width * depth * self.dthetadt
+        area = self.blade_width * (depth - depth*np.cos(theta)) * np.sin(theta - self.blade_sep)# account for blocking
+        return self.river.rho * v**2 * self.drag_coeff * area * self.dthetadt
 
     def find_drag_list(self):
         force_list = []
@@ -172,7 +175,7 @@ class underTurbine():
         # average the power over one revolution
         avg_power = np.sum(power) / len(power)
 
-        self.avg_power = avg_power
+        self.avg_power = avg_power / self.num_blades
         self.full_power = power
 
         return 0

@@ -287,7 +287,7 @@ class breastTurbine():
         # average the power over one revolution
         avg_power = np.sum(power) / len(power)
 
-        self.avg_power = avg_power *  self.num_blades  #- 0.2854295943166135 * 1000
+        self.avg_power = avg_power *  self.num_blades   #- 0.2854295943166135 * 1000
         self.full_power = power
 
         return 0
@@ -313,7 +313,7 @@ class breastTurbine():
         return self.avg_power
 
         
-    def optimise(self, guess):
+    def optimise(self):
         '''
         Optimise the turbine position to maximise the average power output
         '''
@@ -321,30 +321,35 @@ class breastTurbine():
         # first define the function to be optimised
         def fun(Y):
             # unpack the variables
-            x, y, RPM = Y
+            x, y = Y
             # define the power
-            power = self.analysis(x , y  , RPM)
+            self.x_centre = x
+            self.y_centre = y
+            power = self.analysis()
             
             return -power
         
         # define the initial guess
-        x0 = guess
+        x0 = np.array([self.x_centre, self.y_centre])
 
         # run the optimisation
-        res = opt.minimize(fun, x0, bounds=((0, 100), (-self.river.head, 100), (0, 40)), method='nelder-mead')
+        res = opt.minimize(fun, x0, bounds=((0, 100), (-self.river.head, 100)), method='nelder-mead')
 
         # print the results
         if not res.success:
             raise ValueError(res.message)
-        newx, newy, RPM = res.x
+        newx, newy = res.x
+
+        self.x_centre = newx
+        self.y_centre = newy
 
         # average power at the new position
-        power = self.analysis(newx, newy, RPM)
+        power = self.analysis()
 
-        print('The optimised average power output of the turbine is: %.2f W' % power)
+        # print('The optimised average power output of the turbine is: %.2f W' % power)
 
         # return the optimal power
-        return power, newx, newy, RPM
+        return power
     
     def plot_turbine(self):
         '''
