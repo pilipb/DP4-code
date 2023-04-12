@@ -58,6 +58,7 @@ class breastTurbine():
         self.y_centre = y_centre 
         self.river = river
         self.RPM = RPM
+        self.Cd = 1.28 # flat plate drag coefficient
 
         
 
@@ -134,15 +135,32 @@ class breastTurbine():
 
 
         for i, theta in enumerate(self.theta):
+<<<<<<< Updated upstream
 
             if theta >= self.theta_entry and theta <= self.theta_exit:
+=======
+            if theta >= self.theta_entry and theta <= self.blade_sep + np.pi/2:
+
+                area = (self.width * self.radius * (1 - np.cos(self.blade_sep)) ) * np.sin(theta - self.blade_sep)
+                if area < 0:
+                    area = 0
+            
+>>>>>>> Stashed changes
                 # calculate the falling velocity of the water and blade
                 blade_v = self.omega * self.radius * np.sin(theta)
                 fall_v = np.sqrt(2 * self.g * (self.y_centre + self.river.head + self.radius * np.cos(theta)))
 
+<<<<<<< Updated upstream
                 # calculate the filling rate in m^3/s at each theta
                 fill = self.width * self.radius * np.sin(theta) * (fall_v - blade_v) 
                 
+=======
+                fall_v = np.sqrt(2 * self.g * (-self.y_centre + self.river.head  + self.river.nappe_height/2 - self.radius * np.cos(theta)))
+
+                # calculate the filling rate in m^3/s at each theta (the flow is split between current and next blade)
+                fill = area * (fall_v - blade_v) #- np.sin(theta - self.blade_sep)
+
+>>>>>>> Stashed changes
                 # remove nan values
                 if np.isnan(fill):
                     fill = 0
@@ -222,9 +240,25 @@ class breastTurbine():
         imp_power = []
         for i, theta in enumerate(self.theta):
 
+<<<<<<< Updated upstream
             # add a blocking factor (function of theta) to the impulse power - this is the fraction of the water that is blocked by the next blade
             # block factor = 1 at theta entry and 0 at theta exit
             block_factor = 1 - (theta - self.theta_entry) / self.theta_range
+=======
+            # calculate the falling velocity of the water - the fall distance is the head - (y_centre + radius * cos(theta))
+            fall_river_flow = np.sqrt(2 * self.g * (self.river.head + self.river.nappe_height/2 - (self.y_centre  + self.radius * np.cos(theta)))) 
+
+            blade_v = self.omega * self.radius * np.sin(theta)
+
+            area = (self.width * self.radius * (1 - np.cos(self.blade_sep)) ) * np.sin(theta - self.blade_sep)
+            if area < 0:
+                area = 0
+            
+            # model the impulse force as an aerodynamic drag force
+            imp = 0.5 * self.Cd * self.river.rho * area * (fall_river_flow - blade_v)**2
+
+            imp = imp * self.radius * self.omega 
+>>>>>>> Stashed changes
 
             if theta >= self.theta_entry and theta <= self.theta_exit:
                 # calculate the impulse power at each theta
@@ -263,8 +297,13 @@ class breastTurbine():
 
         self.full_power = full_power
 
+<<<<<<< Updated upstream
         # calculate the average power
         self.avg_power = np.mean(full_power)
+=======
+        self.avg_power = avg_power /  self.num_blades  #- 0.2854295943166135 * 1000
+        self.full_power = power
+>>>>>>> Stashed changes
 
         return 0
     
