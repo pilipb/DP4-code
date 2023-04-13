@@ -33,7 +33,7 @@ class underTurbine():
 
     '''
     # constructor
-    def __init__(self,  river, RPM = 15, radius = 0.504, barrel_radius=0.169,  width = 1.008, num_blades = 6,  y_centre = 0):
+    def __init__(self,  river, RPM = 15, radius = 0.504, barrel_radius=0.169,  width = 1.008, num_blades = 6,  y_centre = 0, drag_coeff = 2.3):
         self.radius = radius
         self.width = width
         self.num_blades = num_blades
@@ -45,7 +45,7 @@ class underTurbine():
 
         self.river = river
         self.g = 9.81
-        self.drag_coeff = 2.3 # from consultancy report
+        self.drag_coeff = drag_coeff # from consultancy report
         self.blade_width = width # from CAD
 
         self.blade_sep = 2 * np.pi / num_blades
