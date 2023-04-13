@@ -106,7 +106,7 @@ class breastTurbine():
             else:
                 theta_entry = np.arctan(abs(self.x_centre - self.x_intersect[0]) / abs(self.y_centre - self.y_intersect[0]))
         except IndexError:
-            print('No intersection found')
+            # print('No intersection found')
             return 1
         
         # check that theta_exit is less than pi
@@ -116,7 +116,7 @@ class breastTurbine():
             else:
                 theta_exit = math.pi + np.arctan(abs(self.x_centre - self.x_intersect[-1]) / abs(self.y_centre - self.y_intersect[-1]))
         except IndexError:
-            print('No intersection found')
+            # print('No intersection found')
             return 1
         
         # calculate the theta range
@@ -299,7 +299,7 @@ class breastTurbine():
         # run the analysis
         self.find_intersects()
         if self.find_theta_range():
-            print('error: turbine not in river')
+            # print('error: turbine not in river')
             return 0
         if self.find_filling_rate():
             return 0

@@ -63,6 +63,9 @@ class underTurbine():
         dt = (60/RPM) / len(self.theta)
         self.dthetadt = dtheta / dt
 
+        if y_centre < 0:
+            raise ValueError('y_centre must be greater than 0, above the water surface')
+
 
         # depth of turbine below water surface
         self.sub_depth = y_centre - radius
@@ -80,7 +83,11 @@ class underTurbine():
             return 0
         
         # y centre is the height of the centre of the turbine above the water surface
-        depth = self.radius * np.sin(theta - np.pi/2) - self.y_centre
+
+        if self.y_centre >= self.barrel_radius:
+            depth = self.radius * np.sin(theta - np.pi/2) - self.y_centre
+        else:
+            depth = (self.radius - self.barrel_radius) * np.sin(theta - np.pi/2) 
 
         # check if the turbine is submerged
         if depth > self.max_depth: # max depth of turbine
