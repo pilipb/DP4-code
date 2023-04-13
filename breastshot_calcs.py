@@ -52,7 +52,7 @@ class breastTurbine():
 
         self.radius = radius
         self.width = width
-        self.num_blades = num_blades
+        self.num_blades = int(num_blades)
         self.river = river
         self.x_centre = x_centre 
         self.y_centre = y_centre 
