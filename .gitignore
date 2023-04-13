@@ -1,2 +1,4 @@
 .DS_Store
 breastshot_calcs.py
+__pycache__/breastshot_calcs.cpython-310.pyc
+report.log
