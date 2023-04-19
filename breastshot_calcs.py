@@ -66,7 +66,8 @@ class breastTurbine():
         self.y = self.radius * np.sin(self.theta) + self.y_centre
 
         self.g = 9.81
-        self.max_vol = 0.032 # m^3
+        self.max_vol = 0.06298815822 * radius * width # m^3
+        # the max vol will scale proportionally with the radius * width (constant determined from the max volume of the turbine)
 
         omega = 2 * np.pi * RPM / 60
 
